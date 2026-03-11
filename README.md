@@ -6,7 +6,7 @@
 
 インストール不要！以下のリンクをクリックするだけでブラウザ上でプレイできます（PC・スマホ・タブレット対応）。
 
-**[>>> BOARD COMPANY をプレイする <<<](https://kitao.github.io/pyxel/wasm/launcher/?run=munepi0713/board-company/main/src/main&gamepad=enabled)**
+**[>>> BOARD COMPANY をプレイする <<<](https://kitao.github.io/pyxel/wasm/launcher/?run=munepi0713/board-company/main/main&gamepad=enabled)**
 
 > スマートフォン・タブレットでは画面上にバーチャルゲームパッドが表示されます。
 > 初回読み込みに少し時間がかかる場合があります。
@@ -39,7 +39,7 @@ pip install -r requirements.txt
 ### ゲームの起動
 
 ```bash
-python -m src.main
+python main.py
 ```
 
 ### .pyxapp のビルドと実行（オプション）
@@ -47,8 +47,8 @@ python -m src.main
 読み込み速度を改善したい場合、`.pyxapp` にパッケージングできます。
 
 ```bash
-pyxel package src src/main.py
-pyxel play src.pyxapp
+pyxel package . main.py
+pyxel play .pyxapp
 ```
 
 ## 遊び方

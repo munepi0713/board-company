@@ -2,12 +2,16 @@
 import json
 import os
 
-SAVE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "saves")
+_project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+SAVE_DIR = os.path.join(_project_root, "saves")
 
 
 def save_game(game_state, filename: str = "autosave.json"):
-    """ゲーム状態をセーブ"""
-    os.makedirs(SAVE_DIR, exist_ok=True)
+    """ゲーム状態をセーブ（WASM環境ではスキップ）"""
+    try:
+        os.makedirs(SAVE_DIR, exist_ok=True)
+    except OSError:
+        return  # WASM環境などでファイル書き込み不可の場合はスキップ
     filepath = os.path.join(SAVE_DIR, filename)
 
     data = {
@@ -52,8 +56,11 @@ def save_game(game_state, filename: str = "autosave.json"):
             }
         data["board_state"]["tiles"].append(tile_data)
 
-    with open(filepath, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    try:
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except OSError:
+        pass  # WASM環境などでファイル書き込み不可の場合はスキップ
 
 
 def has_save(filename: str = "autosave.json") -> bool:

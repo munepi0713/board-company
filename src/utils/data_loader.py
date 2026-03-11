@@ -2,7 +2,13 @@
 import json
 import os
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
+# プロジェクトルートからの data/ ディレクトリ
+_project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+DATA_DIR = os.path.join(_project_root, "data")
+
+# フォールバック: CWDからの相対パス（WASM環境対応）
+if not os.path.isdir(DATA_DIR):
+    DATA_DIR = os.path.join(os.getcwd(), "data")
 
 
 def load_json(filename: str) -> dict:
