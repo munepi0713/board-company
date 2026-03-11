@@ -2,6 +2,14 @@
 
 会社経営シミュレーション x ボードゲーム。Pyxelで動くレトロスタイルの対戦ゲームです。
 
+## ブラウザで遊ぶ
+
+インストール不要！以下のリンクをクリックするだけでブラウザ上でプレイできます（PC・スマホ・タブレット対応）。
+
+**[>>> BOARD COMPANY をプレイする <<<](https://kitao.github.io/pyxel/wasm/launcher/?play=munepi0713/board-company/main/dist/board_company.pyxapp&gamepad=enabled)**
+
+> スマートフォン・タブレットでは画面上にバーチャルゲームパッドが表示されます。
+
 ## ゲーム概要
 
 プレイヤーがボード上を移動しながら土地の購入・会社の建設・経営を行い、他プレイヤーと競争します。モノポリーをベースに、会社経営・戦闘・カードシステムを加えた独自のボードゲームです。
@@ -10,7 +18,7 @@
 - 目標総資産 **10,000$** に最初に到達したプレイヤーの勝利
 - 1ゲーム約10分のお手軽プレイ
 
-## セットアップ
+## ローカルで遊ぶ
 
 ### 必要環境
 
@@ -31,6 +39,22 @@ pip install -r requirements.txt
 
 ```bash
 python -m src.main
+```
+
+### .pyxapp のビルドと実行
+
+複数ファイルを1つの `.pyxapp` にパッケージングして実行することもできます。
+
+```bash
+# パッケージング（src/main.py をエントリーポイントとして src/ 全体を梱包）
+pyxel package src src/main.py
+
+# 実行
+pyxel play src.pyxapp
+
+# dist/ にコピー（GitHub上でのWeb実行用）
+mkdir -p dist
+cp src.pyxapp dist/board_company.pyxapp
 ```
 
 ## 遊び方
