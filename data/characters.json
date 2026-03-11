@@ -1,0 +1,102 @@
+[
+  {
+    "id": 1, "name": "アレックス", "description": "カナダ出身の青年",
+    "color": 8,
+    "ai_params": {
+      "aggression": 50, "investment_tendency": 50, "card_usage": 50,
+      "flee_tendency": 30,
+      "preferred_company_cost": {"min": 300, "max": 1500},
+      "education_priority": 50, "advertising_priority": 50
+    }
+  },
+  {
+    "id": 2, "name": "ジョージ", "description": "ベテランビジネスマン",
+    "color": 9,
+    "ai_params": {
+      "aggression": 80, "investment_tendency": 70, "card_usage": 40,
+      "flee_tendency": 15,
+      "preferred_company_cost": {"min": 500, "max": 2000},
+      "education_priority": 40, "advertising_priority": 30
+    }
+  },
+  {
+    "id": 3, "name": "田中会長", "description": "大物経営者",
+    "color": 13,
+    "ai_params": {
+      "aggression": 30, "investment_tendency": 60, "card_usage": 30,
+      "flee_tendency": 20,
+      "preferred_company_cost": {"min": 1000, "max": 2000},
+      "education_priority": 70, "advertising_priority": 60
+    }
+  },
+  {
+    "id": 4, "name": "山田さん", "description": "気弱な中年",
+    "color": 5,
+    "ai_params": {
+      "aggression": 20, "investment_tendency": 30, "card_usage": 70,
+      "flee_tendency": 70,
+      "preferred_company_cost": {"min": 100, "max": 700},
+      "education_priority": 40, "advertising_priority": 40
+    }
+  },
+  {
+    "id": 5, "name": "新人くん", "description": "新入社員",
+    "color": 11,
+    "ai_params": {
+      "aggression": 60, "investment_tendency": 80, "card_usage": 50,
+      "flee_tendency": 25,
+      "preferred_company_cost": {"min": 100, "max": 500},
+      "education_priority": 30, "advertising_priority": 50
+    }
+  },
+  {
+    "id": 6, "name": "鈴木教授", "description": "知識豊富な紳士",
+    "color": 12,
+    "ai_params": {
+      "aggression": 40, "investment_tendency": 50, "card_usage": 80,
+      "flee_tendency": 35,
+      "preferred_company_cost": {"min": 300, "max": 1500},
+      "education_priority": 80, "advertising_priority": 70
+    }
+  },
+  {
+    "id": 7, "name": "佐藤さん", "description": "普通のサラリーマン",
+    "color": 6,
+    "ai_params": {
+      "aggression": 50, "investment_tendency": 50, "card_usage": 50,
+      "flee_tendency": 40,
+      "preferred_company_cost": {"min": 300, "max": 1000},
+      "education_priority": 50, "advertising_priority": 50
+    }
+  },
+  {
+    "id": 8, "name": "エリート", "description": "エリートビジネスマン",
+    "color": 1,
+    "ai_params": {
+      "aggression": 55, "investment_tendency": 65, "card_usage": 45,
+      "flee_tendency": 25,
+      "preferred_company_cost": {"min": 300, "max": 1000},
+      "education_priority": 80, "advertising_priority": 40
+    }
+  },
+  {
+    "id": 9, "name": "みさき", "description": "OL",
+    "color": 14,
+    "ai_params": {
+      "aggression": 35, "investment_tendency": 55, "card_usage": 50,
+      "flee_tendency": 40,
+      "preferred_company_cost": {"min": 100, "max": 1000},
+      "education_priority": 50, "advertising_priority": 70
+    }
+  },
+  {
+    "id": 10, "name": "リサ", "description": "キャリアウーマン",
+    "color": 2,
+    "ai_params": {
+      "aggression": 75, "investment_tendency": 70, "card_usage": 55,
+      "flee_tendency": 15,
+      "preferred_company_cost": {"min": 500, "max": 1700},
+      "education_priority": 60, "advertising_priority": 60
+    }
+  }
+]
