@@ -6,7 +6,7 @@
 
 インストール不要！以下のリンクをクリックするだけでブラウザ上でプレイできます（PC・スマホ・タブレット対応）。
 
-**[>>> BOARD COMPANY をプレイする <<<](https://kitao.github.io/pyxel/wasm/launcher/?run=munepi0713/board-company/main/main&gamepad=enabled)**
+**[>>> BOARD COMPANY をプレイする <<<](https://kitao.github.io/pyxel/wasm/launcher/?play=munepi0713/board-company/main/board-company&gamepad=enabled)**
 
 > スマートフォン・タブレットでは画面上にバーチャルゲームパッドが表示されます。
 > 初回読み込みに少し時間がかかる場合があります。
