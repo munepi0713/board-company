@@ -6,10 +6,20 @@
 
 インストール不要！以下のリンクをクリックするだけでブラウザ上でプレイできます（PC・スマホ・タブレット対応）。
 
-**[>>> BOARD COMPANY をプレイする <<<](https://kitao.github.io/pyxel/wasm/launcher/?run=munepi0713/board-company/main/main&gamepad=enabled)**
+**[>>> BOARD COMPANY をプレイする <<<](https://kitao.github.io/pyxel/wasm/launcher/?play=munepi0713/board-company/main/board-company&gamepad=enabled)**
 
 > スマートフォン・タブレットでは画面上にバーチャルゲームパッドが表示されます。
 > 初回読み込みに少し時間がかかる場合があります。
+
+## スクリーンショット
+
+| タイトル | セットアップ | メインボード |
+|:---:|:---:|:---:|
+| ![タイトル](screenshots/01_title.png) | ![セットアップ](screenshots/02_setup.png) | ![メインボード](screenshots/03_main_board.png) |
+
+| サイコロ演出 | ゲームプレイ |
+|:---:|:---:|
+| ![サイコロ](screenshots/04_dice.png) | ![ゲームプレイ](screenshots/05_gameplay.png) |
 
 ## ゲーム概要
 
@@ -148,6 +158,26 @@ src/
 | [08_キャラクターデータ](docs/08_キャラクターデータ.md) | CPUキャラクター・AI特性 |
 | [09_UI画面設計](docs/09_UI画面設計.md) | 画面レイアウト・遷移 |
 | [10_技術設計](docs/10_技術設計.md) | アーキテクチャ・疎結合設計 |
+| [11_プロジェクト構成](docs/11_プロジェクト構成.md) | ディレクトリ構造・統計・MCP設定 |
+
+## 開発
+
+### 自動テスト
+
+[pyxel-mcp](https://github.com/kitao/pyxel-mcp) を使った画面遷移テストを実行できます。
+
+```bash
+pip install pyxel-mcp
+python tests/test_screens.py
+```
+
+### .pyxapp の再ビルド
+
+ソースコード変更後は `.pyxapp` を再ビルドしてください。
+
+```bash
+pyxel package . main.py
+```
 
 ## ライセンス
 
