@@ -1,0 +1,51 @@
+{
+  "map_name": "デフォルトマップ",
+  "goal_assets": 10000,
+  "tiles": [
+    {"id": 0, "type": "normal", "name": "空き地A", "land_price": 200, "next": [1], "position": {"x": 0, "y": 0}},
+    {"id": 1, "type": "normal", "name": "空き地B", "land_price": 250, "next": [2], "position": {"x": 1, "y": 0}},
+    {"id": 2, "type": "card_shop", "name": "カード売り場", "next": [3], "position": {"x": 2, "y": 0}},
+    {"id": 3, "type": "normal", "name": "商業地A", "land_price": 300, "next": [4], "position": {"x": 3, "y": 0}},
+    {"id": 4, "type": "plus", "name": "ボーナス", "plus_minus_amount": 200, "next": [5], "position": {"x": 4, "y": 0}},
+    {"id": 5, "type": "normal", "name": "商業地B", "land_price": 350, "next": [6, 32], "position": {"x": 5, "y": 0}},
+    {"id": 6, "type": "normal", "name": "住宅地A", "land_price": 150, "next": [7], "position": {"x": 6, "y": 0}},
+    {"id": 7, "type": "card", "name": "カードマス", "next": [8], "position": {"x": 7, "y": 0}},
+
+    {"id": 8, "type": "normal", "name": "工業地A", "land_price": 400, "next": [9], "position": {"x": 7, "y": 1}},
+    {"id": 9, "type": "normal", "name": "空き地C", "land_price": 200, "next": [10], "position": {"x": 7, "y": 2}},
+    {"id": 10, "type": "minus", "name": "税金", "plus_minus_amount": 150, "next": [11], "position": {"x": 7, "y": 3}},
+    {"id": 11, "type": "normal", "name": "商業地C", "land_price": 300, "next": [12], "position": {"x": 7, "y": 4}},
+    {"id": 12, "type": "normal", "name": "高級地A", "land_price": 500, "next": [13], "position": {"x": 7, "y": 5}},
+    {"id": 13, "type": "card_shop", "name": "カード売り場2", "next": [14], "position": {"x": 7, "y": 6}},
+    {"id": 14, "type": "normal", "name": "住宅地B", "land_price": 180, "next": [15], "position": {"x": 7, "y": 7}},
+
+    {"id": 15, "type": "normal", "name": "空き地D", "land_price": 200, "next": [16], "position": {"x": 6, "y": 7}},
+    {"id": 16, "type": "plus", "name": "臨時収入", "plus_minus_amount": 300, "next": [17], "position": {"x": 5, "y": 7}},
+    {"id": 17, "type": "normal", "name": "商業地D", "land_price": 350, "next": [18, 36], "position": {"x": 4, "y": 7}},
+    {"id": 18, "type": "normal", "name": "工業地B", "land_price": 400, "next": [19], "position": {"x": 3, "y": 7}},
+    {"id": 19, "type": "card", "name": "カードマス2", "next": [20], "position": {"x": 2, "y": 7}},
+    {"id": 20, "type": "normal", "name": "住宅地C", "land_price": 160, "next": [21], "position": {"x": 1, "y": 7}},
+    {"id": 21, "type": "normal", "name": "高級地B", "land_price": 450, "next": [22], "position": {"x": 0, "y": 7}},
+
+    {"id": 22, "type": "normal", "name": "空き地E", "land_price": 200, "next": [23], "position": {"x": 0, "y": 6}},
+    {"id": 23, "type": "minus", "name": "修繕費", "plus_minus_amount": 100, "next": [24], "position": {"x": 0, "y": 5}},
+    {"id": 24, "type": "normal", "name": "商業地E", "land_price": 280, "next": [25], "position": {"x": 0, "y": 4}},
+    {"id": 25, "type": "card", "name": "カードマス3", "next": [26], "position": {"x": 0, "y": 3}},
+    {"id": 26, "type": "normal", "name": "住宅地D", "land_price": 170, "next": [27], "position": {"x": 0, "y": 2}},
+    {"id": 27, "type": "normal", "name": "工業地C", "land_price": 380, "next": [28], "position": {"x": 0, "y": 1}},
+    {"id": 28, "type": "plus", "name": "配当金", "plus_minus_amount": 250, "next": [29], "position": {"x": 1, "y": 1}},
+    {"id": 29, "type": "normal", "name": "商業地F", "land_price": 320, "next": [30], "position": {"x": 2, "y": 1}},
+    {"id": 30, "type": "normal", "name": "高級地C", "land_price": 480, "next": [31], "position": {"x": 3, "y": 1}},
+    {"id": 31, "type": "normal", "name": "空き地F", "land_price": 220, "next": [0], "position": {"x": 4, "y": 1}},
+
+    {"id": 32, "type": "normal", "name": "裏道A", "land_price": 150, "next": [33], "position": {"x": 5, "y": 1}},
+    {"id": 33, "type": "minus", "name": "罰金", "plus_minus_amount": 200, "next": [34], "position": {"x": 5, "y": 2}},
+    {"id": 34, "type": "normal", "name": "裏道B", "land_price": 180, "next": [35], "position": {"x": 5, "y": 3}},
+    {"id": 35, "type": "card", "name": "裏カードマス", "next": [11], "position": {"x": 6, "y": 3}},
+
+    {"id": 36, "type": "normal", "name": "近道A", "land_price": 130, "next": [37], "position": {"x": 3, "y": 6}},
+    {"id": 37, "type": "plus", "name": "ラッキー", "plus_minus_amount": 150, "next": [38], "position": {"x": 2, "y": 5}},
+    {"id": 38, "type": "normal", "name": "近道B", "land_price": 140, "next": [39], "position": {"x": 1, "y": 4}},
+    {"id": 39, "type": "normal", "name": "近道C", "land_price": 160, "next": [24], "position": {"x": 1, "y": 3}}
+  ]
+}

@@ -1,0 +1,20 @@
+[
+  {"type_id": "trading", "name": "商社", "construction_cost": 1000, "initial_employees": 200, "initial_revenue": 300},
+  {"type_id": "publishing", "name": "出版会社", "construction_cost": 500, "initial_employees": 50, "initial_revenue": 100},
+  {"type_id": "pc", "name": "パソコン会社", "construction_cost": 500, "initial_employees": 50, "initial_revenue": 100},
+  {"type_id": "software", "name": "ソフト会社", "construction_cost": 300, "initial_employees": 30, "initial_revenue": 150},
+  {"type_id": "airline", "name": "航空会社", "construction_cost": 2000, "initial_employees": 300, "initial_revenue": 310},
+  {"type_id": "bank", "name": "銀行", "construction_cost": 1500, "initial_employees": 100, "initial_revenue": 200},
+  {"type_id": "logistics", "name": "運送会社", "construction_cost": 1000, "initial_employees": 100, "initial_revenue": 160},
+  {"type_id": "electronics", "name": "電気機器会社", "construction_cost": 1000, "initial_employees": 140, "initial_revenue": 180},
+  {"type_id": "advertising", "name": "広告業者", "construction_cost": 1500, "initial_employees": 100, "initial_revenue": 160},
+  {"type_id": "automobile", "name": "自動車会社", "construction_cost": 1700, "initial_employees": 240, "initial_revenue": 280},
+  {"type_id": "department", "name": "デパート", "construction_cost": 600, "initial_employees": 70, "initial_revenue": 100},
+  {"type_id": "discount", "name": "ディスカウントストア", "construction_cost": 700, "initial_employees": 50, "initial_revenue": 100},
+  {"type_id": "travel", "name": "旅行代理店", "construction_cost": 500, "initial_employees": 70, "initial_revenue": 100},
+  {"type_id": "apparel", "name": "アパレル", "construction_cost": 200, "initial_employees": 100, "initial_revenue": 100},
+  {"type_id": "restaurant", "name": "飲食店", "construction_cost": 100, "initial_employees": 30, "initial_revenue": 140},
+  {"type_id": "tv_station", "name": "テレビ局", "construction_cost": 1900, "initial_employees": 100, "initial_revenue": 180},
+  {"type_id": "radio", "name": "ラジオ局", "construction_cost": 1100, "initial_employees": 100, "initial_revenue": 130},
+  {"type_id": "real_estate", "name": "不動産", "construction_cost": 190, "initial_employees": 20, "initial_revenue": 50}
+]
