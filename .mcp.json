@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "pyxel-mcp": {
+      "command": "pyxel-mcp",
+      "type": "stdio"
+    }
+  }
+}
