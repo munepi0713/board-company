@@ -6,10 +6,12 @@
 
 インストール不要！以下のリンクをクリックするだけでブラウザ上でプレイできます（PC・スマホ・タブレット対応）。
 
-**[>>> BOARD COMPANY をプレイする <<<](https://kitao.github.io/pyxel/wasm/launcher/?play=munepi0713/board-company/main/board-company&gamepad=enabled)**
+**[>>> BOARD COMPANY をプレイする <<<](https://munepi0713.github.io/board-company/board-company.html)**
 
 > スマートフォン・タブレットでは画面上にバーチャルゲームパッドが表示されます。
 > 初回読み込みに少し時間がかかる場合があります。
+>
+> ※ このゲームは `pyxel app2html` で生成された自己完結型 HTML ファイルを GitHub Pages 経由で配信しています。
 
 ## スクリーンショット
 
@@ -171,12 +173,13 @@ pip install pyxel-mcp
 python tests/test_screens.py
 ```
 
-### .pyxapp の再ビルド
+### .pyxapp の再ビルドと Web 版 HTML の更新
 
-ソースコード変更後は `.pyxapp` を再ビルドしてください。
+ソースコード変更後は `.pyxapp` を再ビルドし、Web 版 HTML も更新してください。
 
 ```bash
 pyxel package . main.py
+pyxel app2html board-company.pyxapp
 ```
 
 ## ライセンス
