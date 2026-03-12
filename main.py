@@ -13,7 +13,8 @@ from src.core.rules import SCREEN_WIDTH, SCREEN_HEIGHT, FPS
 
 class App:
     def __init__(self):
-        pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="BOARD COMPANY", fps=FPS)
+        pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="BOARD COMPANY", fps=FPS,
+                   quit_key=pyxel.KEY_NONE)
 
         # シーン管理
         self.scene_manager = SceneManager()

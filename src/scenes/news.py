@@ -23,6 +23,8 @@ class NewsScene(Scene):
         self.characters = kwargs.get("characters", [])
         self.frame = 0
         self.text_pos = 0
+        if hasattr(self, '_text_done_frame'):
+            del self._text_done_frame
 
         # イベント処理
         events = check_events(self.game_state.turn_number)
@@ -57,10 +59,19 @@ class NewsScene(Scene):
             # テキストを1文字ずつ表示
             if self.frame % 3 == 0 and self.text_pos < len(self.news_text):
                 self.text_pos += 1
-            if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_Z):
+            # テキスト表示完了後、自動で次へ進む（90フレーム＝3秒待ち）
+            if self.text_pos >= len(self.news_text) and not hasattr(self, '_text_done_frame'):
+                self._text_done_frame = self.frame
+            if hasattr(self, '_text_done_frame') and self.frame - self._text_done_frame > 90:
+                self.phase = "end"
+                self.frame = 0
+                del self._text_done_frame
+            elif pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_Z):
                 if self.text_pos >= len(self.news_text):
                     self.phase = "end"
                     self.frame = 0
+                    if hasattr(self, '_text_done_frame'):
+                        del self._text_done_frame
                 else:
                     self.text_pos = len(self.news_text)
 
