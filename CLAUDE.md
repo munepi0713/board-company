@@ -37,6 +37,9 @@ python tests/test_screens.py
 
 # .pyxapp ビルド（ソース変更後は必ず再ビルド）
 pyxel package . main.py
+
+# Web 版 HTML の更新（.pyxapp 再ビルド後に実行）
+pyxel app2html board-company.pyxapp
 ```
 
 ## MCP サーバー
@@ -52,6 +55,7 @@ pyxel package . main.py
 ## コード変更時の注意
 
 - ソースを変更したら `pyxel package . main.py` で `.pyxapp` を再ビルドする
-- ブラウザ実行は `.pyxapp` 経由（`?play=` コマンド）。`?run=` ではマルチファイル import が動かない
+- `.pyxapp` 再ビルド後は `pyxel app2html board-company.pyxapp` で Web 版 HTML も更新する
+- ブラウザ実行は GitHub Pages 経由で `board-company.html` を配信（`pyxel app2html` で生成した自己完結型 HTML）
 - `tests/test_screens.py` を実行してスクリーンショットが正常に生成されることを確認する
 - スクリーンショットが更新された場合は `screenshots/` もコミットに含める
