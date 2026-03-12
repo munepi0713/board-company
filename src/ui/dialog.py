@@ -1,5 +1,6 @@
 """ダイアログ表示"""
 import pyxel
+from src.ui.input_helper import btnp
 from src.core.rules import SCREEN_WIDTH, SCREEN_HEIGHT
 
 
@@ -22,7 +23,7 @@ class Dialog:
     def update(self):
         if not self.visible:
             return
-        if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_Z):
+        if btnp(pyxel.KEY_RETURN) or btnp(pyxel.KEY_Z):
             self.visible = False
             if self.on_close:
                 self.on_close()
@@ -44,7 +45,7 @@ class Dialog:
             pyxel.text(x + 6, y + 6 + i * 10, line, 7)
 
         # Enter表示
-        pyxel.text(x + w - 40, y + h - 10, "[Enter]", 13)
+        pyxel.text(x + w - 24, y + h - 10, "[A]", 13)
 
     def _wrap_text(self, text: str, max_chars: int) -> list:
         lines = []
@@ -83,9 +84,9 @@ class ConfirmDialog:
     def update(self):
         if not self.visible:
             return
-        if pyxel.btnp(pyxel.KEY_LEFT) or pyxel.btnp(pyxel.KEY_RIGHT):
+        if btnp(pyxel.KEY_LEFT) or btnp(pyxel.KEY_RIGHT):
             self.selected = 1 - self.selected
-        if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_Z):
+        if btnp(pyxel.KEY_RETURN) or btnp(pyxel.KEY_Z):
             self.visible = False
             if self.on_result:
                 self.on_result(self.selected == 0)

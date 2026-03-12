@@ -1,6 +1,7 @@
 """BOARD COMPANY - エントリーポイント（Pyxel Web / ローカル共用）"""
 import pyxel
 from src.scenes.scene_base import SceneManager
+from src.ui.input_helper import btn
 from src.scenes.title import TitleScene
 from src.scenes.setup import SetupScene
 from src.scenes.main_board import MainBoardScene
@@ -31,7 +32,7 @@ class App:
 
     def update(self):
         # Qキーで終了
-        if pyxel.btn(pyxel.KEY_Q) and pyxel.btn(pyxel.KEY_CTRL):
+        if btn(pyxel.KEY_Q) and btn(pyxel.KEY_CTRL):
             pyxel.quit()
         self.scene_manager.update()
 

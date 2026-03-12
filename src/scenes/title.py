@@ -1,6 +1,7 @@
 """タイトル画面"""
 import pyxel
 from src.scenes.scene_base import Scene
+from src.ui.input_helper import btnp
 from src.core.rules import SCREEN_WIDTH, SCREEN_HEIGHT
 
 
@@ -17,11 +18,11 @@ class TitleScene(Scene):
 
     def update(self):
         self.frame += 1
-        if pyxel.btnp(pyxel.KEY_UP):
+        if btnp(pyxel.KEY_UP):
             self.selected = (self.selected - 1) % len(self.menu_items)
-        if pyxel.btnp(pyxel.KEY_DOWN):
+        if btnp(pyxel.KEY_DOWN):
             self.selected = (self.selected + 1) % len(self.menu_items)
-        if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_Z):
+        if btnp(pyxel.KEY_RETURN) or btnp(pyxel.KEY_Z):
             if self.selected == 0:
                 self.change_scene("setup")
             elif self.selected == 1:
@@ -67,6 +68,6 @@ class TitleScene(Scene):
 
         # 点滅テキスト
         if self.frame % 60 < 40:
-            hint = "Press ENTER to start"
+            hint = "Press ENTER / A to start"
             hx = (SCREEN_WIDTH - len(hint) * 4) // 2
             pyxel.text(hx, 200, hint, 13)

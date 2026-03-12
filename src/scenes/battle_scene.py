@@ -1,6 +1,7 @@
 """戦闘画面"""
 import pyxel
 from src.scenes.scene_base import Scene
+from src.ui.input_helper import btnp
 from src.core.rules import SCREEN_WIDTH, SCREEN_HEIGHT
 from src.core.battle_logic import BattleState, BattleBuff
 from src.core.card_logic import get_battle_cards
@@ -79,11 +80,11 @@ class BattleScene(Scene):
         if self.phase == BattlePhase.COMMAND:
             current = self._current_fighter()
             if current.is_human:
-                if pyxel.btnp(pyxel.KEY_LEFT):
+                if btnp(pyxel.KEY_LEFT):
                     self.selected = (self.selected - 1) % len(self.commands)
-                if pyxel.btnp(pyxel.KEY_RIGHT):
+                if btnp(pyxel.KEY_RIGHT):
                     self.selected = (self.selected + 1) % len(self.commands)
-                if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_Z):
+                if btnp(pyxel.KEY_RETURN) or btnp(pyxel.KEY_Z):
                     self._execute_command(self.selected)
 
     def _current_fighter(self):

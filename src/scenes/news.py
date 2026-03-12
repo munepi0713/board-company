@@ -1,6 +1,7 @@
 """ニュース画面"""
 import pyxel
 from src.scenes.scene_base import Scene
+from src.ui.input_helper import btnp
 from src.core.rules import SCREEN_WIDTH, SCREEN_HEIGHT
 from src.core.event_logic import check_events, apply_event, get_news_content, get_sponsors
 
@@ -50,7 +51,7 @@ class NewsScene(Scene):
         self.frame += 1
 
         if self.phase == "sponsor":
-            if self.frame > 60 or pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_Z):
+            if self.frame > 60 or btnp(pyxel.KEY_RETURN) or btnp(pyxel.KEY_Z):
                 self.phase = "news"
                 self.frame = 0
                 self.text_pos = 0
@@ -66,7 +67,7 @@ class NewsScene(Scene):
                 self.phase = "end"
                 self.frame = 0
                 del self._text_done_frame
-            elif pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_Z):
+            elif btnp(pyxel.KEY_RETURN) or btnp(pyxel.KEY_Z):
                 if self.text_pos >= len(self.news_text):
                     self.phase = "end"
                     self.frame = 0
@@ -76,7 +77,7 @@ class NewsScene(Scene):
                     self.text_pos = len(self.news_text)
 
         elif self.phase == "end":
-            if self.frame > 30 or pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_Z):
+            if self.frame > 30 or btnp(pyxel.KEY_RETURN) or btnp(pyxel.KEY_Z):
                 # 勝利判定
                 if self.game_state.check_victory():
                     self.change_scene("ending", game_state=self.game_state)
