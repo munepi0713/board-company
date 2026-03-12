@@ -2,6 +2,7 @@
 import random
 import pyxel
 from src.scenes.scene_base import Scene
+from src.ui.input_helper import btnp
 from src.core.rules import SCREEN_WIDTH, SCREEN_HEIGHT
 from src.core.player_model import Player
 from src.core.game_state import GameState, GamePhase
@@ -34,38 +35,38 @@ class SetupScene(Scene):
             self.player_settings.append([is_human, char_index])
 
     def update(self):
-        if pyxel.btnp(pyxel.KEY_UP):
+        if btnp(pyxel.KEY_UP):
             self.cursor_row = max(0, self.cursor_row - 1)
-        if pyxel.btnp(pyxel.KEY_DOWN):
+        if btnp(pyxel.KEY_DOWN):
             max_row = self.player_count + 1  # 人数 + プレイヤー数 + OK
             self.cursor_row = min(max_row, self.cursor_row + 1)
 
         if self.cursor_row == 0:
             # 人数変更
-            if pyxel.btnp(pyxel.KEY_LEFT):
+            if btnp(pyxel.KEY_LEFT):
                 self.player_count = max(2, self.player_count - 1)
-            if pyxel.btnp(pyxel.KEY_RIGHT):
+            if btnp(pyxel.KEY_RIGHT):
                 self.player_count = min(4, self.player_count + 1)
         elif 1 <= self.cursor_row <= self.player_count:
             idx = self.cursor_row - 1
-            if pyxel.btnp(pyxel.KEY_LEFT):
+            if btnp(pyxel.KEY_LEFT):
                 if self.cursor_col == 0:
                     self.player_settings[idx][0] = not self.player_settings[idx][0]
                 else:
                     self.player_settings[idx][1] = (
                         self.player_settings[idx][1] - 1
                     ) % len(self.characters)
-            if pyxel.btnp(pyxel.KEY_RIGHT):
+            if btnp(pyxel.KEY_RIGHT):
                 if self.cursor_col == 0:
                     self.player_settings[idx][0] = not self.player_settings[idx][0]
                 else:
                     self.player_settings[idx][1] = (
                         self.player_settings[idx][1] + 1
                     ) % len(self.characters)
-            if pyxel.btnp(pyxel.KEY_TAB):
+            if btnp(pyxel.KEY_TAB):
                 self.cursor_col = 1 - self.cursor_col
 
-        if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_Z):
+        if btnp(pyxel.KEY_RETURN) or btnp(pyxel.KEY_Z):
             if self.cursor_row == self.player_count + 1:
                 self._start_game()
 
@@ -134,8 +135,8 @@ class SetupScene(Scene):
             pyxel.circ(SCREEN_WIDTH - 20, y + 3, 4, char.get("color", 8))
 
         # 説明
-        pyxel.text(16, 50 + self.player_count * 20 + 5, "LEFT/RIGHT: Change", 5)
-        pyxel.text(16, 50 + self.player_count * 20 + 15, "TAB: Switch column", 5)
+        pyxel.text(16, 50 + self.player_count * 20 + 5, "D-pad/Arrow: Change", 5)
+        pyxel.text(16, 50 + self.player_count * 20 + 15, "TAB/Y: Switch column", 5)
 
         # OKボタン
         ok_y = 160
@@ -146,4 +147,4 @@ class SetupScene(Scene):
             pyxel.text(92, ok_y, ">", 10)
 
         # 下部説明
-        pyxel.text(8, SCREEN_HEIGHT - 20, "ENTER: Select   ESC: Back", 5)
+        pyxel.text(8, SCREEN_HEIGHT - 20, "A/ENTER: Select  B/ESC: Back", 5)

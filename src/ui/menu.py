@@ -1,5 +1,6 @@
 """メニュー表示・選択"""
 import pyxel
+from src.ui.input_helper import btnp
 
 
 class Menu:
@@ -26,15 +27,15 @@ class Menu:
     def update(self):
         if not self.visible:
             return
-        if pyxel.btnp(pyxel.KEY_UP):
+        if btnp(pyxel.KEY_UP):
             self.selected = (self.selected - 1) % len(self.items)
-        if pyxel.btnp(pyxel.KEY_DOWN):
+        if btnp(pyxel.KEY_DOWN):
             self.selected = (self.selected + 1) % len(self.items)
-        if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_Z):
+        if btnp(pyxel.KEY_RETURN) or btnp(pyxel.KEY_Z):
             self.visible = False
             if self.on_select:
                 self.on_select(self.selected)
-        if pyxel.btnp(pyxel.KEY_ESCAPE) or pyxel.btnp(pyxel.KEY_X):
+        if btnp(pyxel.KEY_ESCAPE) or btnp(pyxel.KEY_X):
             self.visible = False
             if self.on_select:
                 self.on_select(-1)  # キャンセル
@@ -84,11 +85,11 @@ class HorizontalMenu:
     def update(self):
         if not self.visible:
             return
-        if pyxel.btnp(pyxel.KEY_LEFT):
+        if btnp(pyxel.KEY_LEFT):
             self.selected = (self.selected - 1) % len(self.items)
-        if pyxel.btnp(pyxel.KEY_RIGHT):
+        if btnp(pyxel.KEY_RIGHT):
             self.selected = (self.selected + 1) % len(self.items)
-        if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_Z):
+        if btnp(pyxel.KEY_RETURN) or btnp(pyxel.KEY_Z):
             self.visible = False
             if self.on_select:
                 self.on_select(self.selected)

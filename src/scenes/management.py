@@ -1,6 +1,7 @@
 """経営画面"""
 import pyxel
 from src.scenes.scene_base import Scene
+from src.ui.input_helper import btnp
 from src.core.rules import SCREEN_WIDTH, SCREEN_HEIGHT
 
 
@@ -43,40 +44,40 @@ class ManagementScene(Scene):
         player = self.game_state.current_player
 
         if self.input_mode == "hire":
-            if pyxel.btnp(pyxel.KEY_UP):
+            if btnp(pyxel.KEY_UP):
                 self.hire_count = min(self.hire_count + 10, 100)
-            if pyxel.btnp(pyxel.KEY_DOWN):
+            if btnp(pyxel.KEY_DOWN):
                 self.hire_count = max(self.hire_count - 10, 1)
-            if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_Z):
+            if btnp(pyxel.KEY_RETURN) or btnp(pyxel.KEY_Z):
                 cost = company.hire(self.hire_count)
                 player.pay(cost)
                 self.used_commands.add("hire")
                 self.message = f"Hired {self.hire_count} (+{cost}$)"
                 self.input_mode = None
-            if pyxel.btnp(pyxel.KEY_ESCAPE) or pyxel.btnp(pyxel.KEY_X):
+            if btnp(pyxel.KEY_ESCAPE) or btnp(pyxel.KEY_X):
                 self.input_mode = None
             return
 
         if self.input_mode == "fire":
-            if pyxel.btnp(pyxel.KEY_UP):
+            if btnp(pyxel.KEY_UP):
                 self.fire_count = min(self.fire_count + 10, company.employees)
-            if pyxel.btnp(pyxel.KEY_DOWN):
+            if btnp(pyxel.KEY_DOWN):
                 self.fire_count = max(self.fire_count - 10, 1)
-            if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_Z):
+            if btnp(pyxel.KEY_RETURN) or btnp(pyxel.KEY_Z):
                 company.fire(self.fire_count)
                 self.used_commands.add("fire")
                 self.message = f"Fired {self.fire_count}"
                 self.input_mode = None
-            if pyxel.btnp(pyxel.KEY_ESCAPE) or pyxel.btnp(pyxel.KEY_X):
+            if btnp(pyxel.KEY_ESCAPE) or btnp(pyxel.KEY_X):
                 self.input_mode = None
             return
 
-        if pyxel.btnp(pyxel.KEY_UP):
+        if btnp(pyxel.KEY_UP):
             self.selected = (self.selected - 1) % len(self.commands)
-        if pyxel.btnp(pyxel.KEY_DOWN):
+        if btnp(pyxel.KEY_DOWN):
             self.selected = (self.selected + 1) % len(self.commands)
 
-        if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_Z):
+        if btnp(pyxel.KEY_RETURN) or btnp(pyxel.KEY_Z):
             cmd = self.commands[self.selected]
             key = cmd["key"]
 
@@ -124,7 +125,7 @@ class ManagementScene(Scene):
                 self.used_commands.add("liquidate")
                 self._return_to_board()
 
-        if pyxel.btnp(pyxel.KEY_ESCAPE) or pyxel.btnp(pyxel.KEY_X):
+        if btnp(pyxel.KEY_ESCAPE) or btnp(pyxel.KEY_X):
             self._return_to_board()
 
     def _return_to_board(self):

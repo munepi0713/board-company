@@ -2,6 +2,7 @@
 import random
 import pyxel
 from src.scenes.scene_base import Scene
+from src.ui.input_helper import btnp
 from src.core.rules import SCREEN_WIDTH, SCREEN_HEIGHT, LAND_FEE_RATE, COMPANY_FEE_RATE
 from src.core.game_state import GameState, GamePhase
 from src.core.company_model import Company
@@ -181,18 +182,18 @@ class MainBoardScene(Scene):
 
         # サイコロ結果表示
         if self.sub_phase == SubPhase.DICE_RESULT:
-            if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_Z):
+            if btnp(pyxel.KEY_RETURN) or btnp(pyxel.KEY_Z):
                 self.sub_phase = SubPhase.MOVING
                 self._start_movement()
             return
 
         # プレイヤーコマンド選択
         if gs.phase == GamePhase.PLAYER_COMMAND and player.is_human:
-            if pyxel.btnp(pyxel.KEY_LEFT):
+            if btnp(pyxel.KEY_LEFT):
                 self.command_selected = (self.command_selected - 1) % len(self.commands)
-            if pyxel.btnp(pyxel.KEY_RIGHT):
+            if btnp(pyxel.KEY_RIGHT):
                 self.command_selected = (self.command_selected + 1) % len(self.commands)
-            if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_Z) or pyxel.btnp(pyxel.KEY_SPACE):
+            if btnp(pyxel.KEY_RETURN) or btnp(pyxel.KEY_Z) or btnp(pyxel.KEY_SPACE):
                 self._execute_command(self.command_selected)
 
         # 分岐選択
