@@ -83,3 +83,93 @@ class MoveAnimation(Animation):
         fx, fy = self.from_pos
         tx, ty = self.to_pos
         return (int(fx + (tx - fx) * p), int(fy + (ty - fy) * p))
+
+
+class TileZoomAnimation(Animation):
+    """マスズームアニメーション（blt3d使用）
+
+    常にカメラパラメータを提供する。
+    非ズーム時はデフォルトの俯瞰位置、ズーム時はマスに接近する。
+    """
+
+    ZOOM_IN_DURATION = 20
+    ZOOM_OUT_DURATION = 15
+    FOV = 90
+    IMG_CENTER = 128  # イメージバンク中心
+
+    # 通常時カメラ（俯瞰）
+    NORMAL_X = 128
+    NORMAL_Y = 220
+    NORMAL_Z = 120
+    NORMAL_RX = 65
+
+    # ズーム時カメラ（接近）
+    ZOOM_Z = 25
+    ZOOM_Y_OFFSET = 20  # マス位置からのYオフセット
+    ZOOM_RX = 55
+
+    def __init__(self):
+        super().__init__(duration=20)
+        self.active = False
+        self.zooming_in = False
+        self.zooming_out = False
+        self.target_x = self.IMG_CENTER
+        self.target_y = self.IMG_CENTER
+
+    def start_zoom_in(self, target_x, target_y, on_complete=None):
+        self.target_x = target_x
+        self.target_y = target_y
+        self.active = True
+        self.zooming_in = True
+        self.zooming_out = False
+        self.start(duration=self.ZOOM_IN_DURATION, on_complete=on_complete)
+
+    def start_zoom_out(self, on_complete=None):
+        self.zooming_in = False
+        self.zooming_out = True
+        self.start(duration=self.ZOOM_OUT_DURATION, on_complete=on_complete)
+
+    def finish_zoom(self):
+        self.active = False
+        self.zooming_in = False
+        self.zooming_out = False
+        self.playing = False
+
+    def _lerp(self, a, b, t):
+        return a + (b - a) * t
+
+    @property
+    def _eased_progress(self):
+        if not self.active:
+            return 0.0
+        p = self.progress
+        if self.zooming_in:
+            return 1 - (1 - p) ** 2  # イーズアウト
+        elif self.zooming_out:
+            return 1 - p ** 2  # イーズアウト（逆方向）
+        return 1.0
+
+    @property
+    def camera_pos(self):
+        """常にカメラ位置を返す（非ズーム時はデフォルト俯瞰）"""
+        if not self.active:
+            return (self.NORMAL_X, self.NORMAL_Y, self.NORMAL_Z)
+
+        t = self._eased_progress
+        zoom_y = self.target_y + self.ZOOM_Y_OFFSET
+        cx = self._lerp(self.NORMAL_X, self.target_x, t)
+        cy = self._lerp(self.NORMAL_Y, zoom_y, t)
+        cz = self._lerp(self.NORMAL_Z, self.ZOOM_Z, t)
+        return (cx, cy, cz)
+
+    @property
+    def camera_rot(self):
+        if not self.active:
+            return (self.NORMAL_RX, 0, 0)
+        t = self._eased_progress
+        rx = self._lerp(self.NORMAL_RX, self.ZOOM_RX, t)
+        return (rx, 0, 0)
+
+    @property
+    def fov(self):
+        return self.FOV

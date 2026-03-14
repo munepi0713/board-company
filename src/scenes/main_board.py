@@ -14,7 +14,7 @@ from src.views.view_base import ViewManager
 from src.ui.dialog import Dialog, ConfirmDialog
 from src.ui.menu import Menu
 from src.ui.hud import HUD
-from src.ui.animation import DiceAnimation, MoveAnimation
+from src.ui.animation import DiceAnimation, MoveAnimation, TileZoomAnimation
 from src.utils.save_manager import save_game
 
 
@@ -33,6 +33,8 @@ class SubPhase:
     REVENUE_DISPLAY = "revenue_display"
     WAITING_AI = "waiting_ai"
     CARD_SELECT = "card_select"
+    TILE_ZOOM_IN = "tile_zoom_in"
+    TILE_ZOOM_OUT = "tile_zoom_out"
 
 
 class MainBoardScene(Scene):
@@ -55,6 +57,10 @@ class MainBoardScene(Scene):
         self.ai_timer = 0
         self.moving_player_pos = None
         self.pending_action = None
+        self.tile_zoom = TileZoomAnimation()
+        self.zoom_image_idx = 2  # blt3d用イメージバンク
+        self.move_from_tile = None  # 移動アニメーション用: 元マスID
+        self.move_to_tile = None    # 移動アニメーション用: 先マスID
 
     def enter(self, **kwargs):
         self.game_state = kwargs.get("game_state")
@@ -77,6 +83,7 @@ class MainBoardScene(Scene):
                     self.ai_players[p.id] = AIPlayer({})
 
         self.sub_phase = SubPhase.NONE
+        self.tile_zoom.finish_zoom()
         self._start_turn()
 
     def _start_turn(self):
@@ -153,6 +160,13 @@ class MainBoardScene(Scene):
         # アニメーション更新
         self.dice_anim.update()
         self.move_anim.update()
+        self.tile_zoom.update()
+
+        # ズームアニメーション中
+        if self.sub_phase == SubPhase.TILE_ZOOM_IN:
+            return
+        if self.sub_phase == SubPhase.TILE_ZOOM_OUT:
+            return
 
         # ダイアログ
         if self.dialog.visible:
@@ -240,8 +254,10 @@ class MainBoardScene(Scene):
             return
 
         # 移動アニメーション
-        from_pos = self.view_manager.board_view.tile_screen_pos(player.position)
+        self.move_from_tile = player.position
         next_id = next_tiles[0]
+        self.move_to_tile = next_id
+        from_pos = self.view_manager.board_view.tile_screen_pos(player.position)
         to_pos = self.view_manager.board_view.tile_screen_pos(next_id)
         player.position = next_id
         player.remaining_moves -= 1
@@ -261,8 +277,10 @@ class MainBoardScene(Scene):
             return
         player = self.game_state.current_player
         tile = self.game_state.board.get_tile(player.position)
-        from_pos = self.view_manager.board_view.tile_screen_pos(player.position)
+        self.move_from_tile = player.position
         next_id = tile.next_tiles[index]
+        self.move_to_tile = next_id
+        from_pos = self.view_manager.board_view.tile_screen_pos(player.position)
         to_pos = self.view_manager.board_view.tile_screen_pos(next_id)
         player.position = next_id
         player.remaining_moves -= 1
@@ -271,11 +289,26 @@ class MainBoardScene(Scene):
         self.move_anim.start_move(from_pos, to_pos)
 
     def _on_movement_complete(self):
-        """移動完了→マス処理"""
+        """移動完了→ズームイン→マス処理"""
+        gs = self.game_state
+        player = gs.current_player
+        tile = gs.board.get_tile(player.position)
+
+        # ズームイン開始（対象マスへ）
+        tx, ty = self.view_manager.board_view.tile_image_pos(tile.id)
+        self.sub_phase = SubPhase.TILE_ZOOM_IN
+        self.tile_zoom.start_zoom_in(
+            tx, ty,
+            on_complete=lambda: self._on_zoom_in_complete()
+        )
+
+    def _on_zoom_in_complete(self):
+        """ズームイン完了→マスアクション実行"""
         gs = self.game_state
         player = gs.current_player
         tile = gs.board.get_tile(player.position)
         action = gs.get_tile_action_type(tile, player)
+        self.sub_phase = SubPhase.TILE_ACTION
 
         if action == "plus":
             player.add_money(tile.plus_minus_amount)
@@ -513,6 +546,19 @@ class MainBoardScene(Scene):
             self._roll_dice()
 
     def _end_player_action(self):
+        if self.tile_zoom.active:
+            self.sub_phase = SubPhase.TILE_ZOOM_OUT
+            self.tile_zoom.start_zoom_out(
+                on_complete=lambda: self._on_zoom_out_complete()
+            )
+        else:
+            self._finish_player_action()
+
+    def _on_zoom_out_complete(self):
+        self.tile_zoom.finish_zoom()
+        self._finish_player_action()
+
+    def _finish_player_action(self):
         gs = self.game_state
         # 勝利判定
         if gs.check_victory():
@@ -623,24 +669,28 @@ class MainBoardScene(Scene):
         view_label = "[V]表示: " + self.view_manager.view_type.upper()
         draw_text(SCREEN_WIDTH - len(view_label) * 8 - 4, 2, view_label, 13)
 
-        # ボード描画
-        self.view_manager.board_view.draw_board()
+        # 移動中プレイヤーの補間情報を組み立てる
+        move_info = None
+        if (self.sub_phase == SubPhase.MOVE_ANIM
+                and self.move_from_tile is not None
+                and self.move_to_tile is not None):
+            move_info = {
+                "player_id": player.id,
+                "from_tile": self.move_from_tile,
+                "to_tile": self.move_to_tile,
+                "progress": self.move_anim.progress,
+            }
 
-        # プレイヤー描画
-        tile_players = {}
-        for p in gs.active_players:
-            if p.position not in tile_players:
-                tile_players[p.position] = []
-            tile_players[p.position].append(p)
-
-        for tile_id, players in tile_players.items():
-            sx, sy = self.view_manager.board_view.tile_screen_pos(tile_id)
-            for i, p in enumerate(players):
-                if self.sub_phase == SubPhase.MOVE_ANIM and p.id == player.id:
-                    cx, cy = self.move_anim.current_pos
-                    self.view_manager.player_view.draw_player(p, cx, cy, 0)
-                else:
-                    self.view_manager.player_view.draw_player(p, sx, sy, i)
+        # オフスクリーン描画 → blt3d でスクリーンに転送
+        img = pyxel.images[self.zoom_image_idx]
+        self.view_manager.board_view.draw_board_to_image(
+            img, gs.active_players, move_info
+        )
+        pos = self.tile_zoom.camera_pos
+        rot = self.tile_zoom.camera_rot
+        fov = self.tile_zoom.fov
+        pyxel.blt3d(0, 16, SCREEN_WIDTH, 420,
+                    self.zoom_image_idx, pos, rot, fov=fov)
 
         # プレイヤー所持金
         self.hud.draw_player_money(gs.players, gs, y=440)
