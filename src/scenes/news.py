@@ -90,67 +90,67 @@ class NewsScene(Scene):
         pyxel.cls(1)
 
         # ニューススタジオ背景
-        pyxel.rect(16, 16, SCREEN_WIDTH - 32, 140, 0)
-        pyxel.rectb(16, 16, SCREEN_WIDTH - 32, 140, 10)
+        pyxel.rect(32, 32, SCREEN_WIDTH - 64, 280, 0)
+        pyxel.rectb(32, 32, SCREEN_WIDTH - 64, 280, 10)
 
         # BOARD NEWS ヘッダー
-        pyxel.rect(40, 20, 176, 16, 1)
-        pyxel.rectb(40, 20, 176, 16, 10)
+        pyxel.rect(80, 40, 352, 24, 1)
+        pyxel.rectb(80, 40, 352, 24, 10)
         title = "BOARD NEWS"
         tx = (SCREEN_WIDTH - len(title) * 4) // 2
-        pyxel.text(tx, 25, title, 10)
+        pyxel.text(tx, 48, title, 10)
 
         # キャスター（ダミー）
-        cx, cy = 60, 60
+        cx, cy = 120, 120
         # 体
-        pyxel.rect(cx - 8, cy, 16, 20, 12)
+        pyxel.rect(cx - 14, cy, 28, 36, 12)
         # 頭
-        pyxel.circ(cx, cy - 6, 8, 15)
+        pyxel.circ(cx, cy - 10, 14, 15)
         # 目
-        pyxel.pset(cx - 3, cy - 7, 0)
-        pyxel.pset(cx + 3, cy - 7, 0)
+        pyxel.pset(cx - 5, cy - 12, 0)
+        pyxel.pset(cx + 5, cy - 12, 0)
         # 口（口パクアニメーション）
         if self.phase == "news" and self.text_pos < len(self.news_text):
             if self.frame % 8 < 4:
-                pyxel.line(cx - 2, cy - 2, cx + 2, cy - 2, 0)
+                pyxel.line(cx - 3, cy - 4, cx + 3, cy - 4, 0)
             else:
-                pyxel.rect(cx - 2, cy - 3, 4, 3, 0)
+                pyxel.rect(cx - 3, cy - 5, 6, 4, 0)
         else:
-            pyxel.line(cx - 2, cy - 2, cx + 2, cy - 2, 0)
+            pyxel.line(cx - 3, cy - 4, cx + 3, cy - 4, 0)
 
         # スタジオ装飾
-        pyxel.rect(100, 50, 110, 80, 1)
-        pyxel.rectb(100, 50, 110, 80, 5)
+        pyxel.rect(200, 90, 220, 160, 1)
+        pyxel.rectb(200, 90, 220, 160, 5)
 
         # ニューステキスト表示エリア
         if self.phase == "sponsor":
             sp1 = self.sponsors[0] if len(self.sponsors) > 0 else "EXGRACE SOFT"
             sp2 = self.sponsors[1] if len(self.sponsors) > 1 else "EXGRACE SOFT"
-            pyxel.text(108, 60, "Presented by:", 7)
-            pyxel.text(108, 75, sp1[:12], 10)
-            pyxel.text(108, 90, sp2[:12], 10)
+            pyxel.text(216, 110, "Presented by:", 7)
+            pyxel.text(216, 140, sp1[:12], 10)
+            pyxel.text(216, 165, sp2[:12], 10)
 
         elif self.phase == "news":
             # テキストを表示
             display = self.news_text[:self.text_pos]
-            lines = self._wrap(display, 22)
-            for i, line in enumerate(lines[:5]):
-                pyxel.text(108, 56 + i * 10, line, 7)
+            lines = self._wrap(display, 40)
+            for i, line in enumerate(lines[:8]):
+                pyxel.text(216, 100 + i * 14, line, 7)
 
         elif self.phase == "end":
-            pyxel.text(108, 70, "Thank you for", 7)
-            pyxel.text(108, 82, "watching!", 7)
+            pyxel.text(216, 130, "Thank you for", 7)
+            pyxel.text(216, 150, "watching!", 7)
 
         # 下部：ターン情報
-        pyxel.rect(16, 170, SCREEN_WIDTH - 32, 24, 0)
-        pyxel.rectb(16, 170, SCREEN_WIDTH - 32, 24, 7)
-        pyxel.text(24, 176, f"Turn {self.game_state.turn_number}  [Enter]", 7)
+        pyxel.rect(32, 340, SCREEN_WIDTH - 64, 30, 0)
+        pyxel.rectb(32, 340, SCREEN_WIDTH - 64, 30, 7)
+        pyxel.text(48, 350, f"Turn {self.game_state.turn_number}  [Enter]", 7)
 
         # プレイヤー情報
-        y = 200
+        y = 390
         for i, p in enumerate(self.game_state.players):
             if not p.is_bankrupt:
-                pyxel.text(8 + (i % 2) * 128, y + (i // 2) * 10,
+                pyxel.text(16 + (i % 2) * 256, y + (i // 2) * 14,
                            f"P{p.id}:{p.name[:4]} ${p.money}", p.color)
 
     def _wrap(self, text, max_chars):

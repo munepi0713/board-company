@@ -5,10 +5,10 @@ from src.core.rules import PLAYER_SPRITE_W, PLAYER_SPRITE_H
 
 # プレイヤーの位置オフセット（同マスに複数いる場合）
 PLAYER_OFFSETS = [
-    (2, 2),
-    (8, 2),
-    (2, 8),
-    (8, 8),
+    (4, 4),
+    (18, 4),
+    (4, 18),
+    (18, 18),
 ]
 
 
@@ -24,11 +24,11 @@ class TopViewPlayerView(PlayerViewBase):
         color = player.color
 
         # 頭（丸）
-        pyxel.circ(px + 3, py + 1, 2, color)
+        pyxel.circ(px + 5, py + 3, 3, color)
         # 体（四角）
-        pyxel.rect(px + 1, py + 3, 5, 4, color)
+        pyxel.rect(px + 2, py + 6, 7, 6, color)
         # プレイヤー番号
-        pyxel.text(px + 2, py + 3, str(player.id), 7)
+        pyxel.text(px + 4, py + 7, str(player.id), 7)
 
     def draw_move_animation(self, player, from_pos, to_pos, progress: float):
         """移動アニメーション"""

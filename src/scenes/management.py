@@ -143,11 +143,11 @@ class ManagementScene(Scene):
             return
 
         # ヘッダー
-        pyxel.text(8, 8, f"Management: {company.name}", 10)
-        pyxel.line(8, 18, SCREEN_WIDTH - 8, 18, 7)
+        pyxel.text(16, 16, f"Management: {company.name}", 10)
+        pyxel.line(16, 28, SCREEN_WIDTH - 16, 28, 7)
 
         # 会社情報
-        y = 28
+        y = 48
         info = [
             f"Type:     {company.company_type}",
             f"Staff:    {company.employees}",
@@ -157,17 +157,17 @@ class ManagementScene(Scene):
             f"Value:    {company.evaluation}$",
         ]
         for i, line in enumerate(info):
-            pyxel.text(16, y + i * 10, line, 7)
+            pyxel.text(32, y + i * 16, line, 7)
 
         # 所持金
-        pyxel.text(16, y + len(info) * 10 + 5, f"Your Money: {player.money}$", 11)
+        pyxel.text(32, y + len(info) * 16 + 10, f"Your Money: {player.money}$", 11)
 
         # コマンド
-        cmd_y = 120
-        pyxel.line(8, cmd_y - 4, SCREEN_WIDTH - 8, cmd_y - 4, 7)
+        cmd_y = 220
+        pyxel.line(16, cmd_y - 6, SCREEN_WIDTH - 16, cmd_y - 6, 7)
 
         for i, cmd in enumerate(self.commands):
-            cy = cmd_y + i * 12
+            cy = cmd_y + i * 18
             is_used = cmd["key"] in self.used_commands
             color = 5 if is_used else (10 if i == self.selected else 7)
             prefix = ">" if i == self.selected else " "
@@ -180,24 +180,24 @@ class ManagementScene(Scene):
             elif cmd["key"] == "advertise":
                 cost_str = " (200$)"
 
-            pyxel.text(16, cy, f"{prefix}{label}{cost_str}", color)
+            pyxel.text(32, cy, f"{prefix}{label}{cost_str}", color)
 
         # 入力モード
         if self.input_mode == "hire":
-            pyxel.rect(60, 140, 140, 30, 1)
-            pyxel.rectb(60, 140, 140, 30, 7)
+            pyxel.rect(120, 280, 260, 40, 1)
+            pyxel.rectb(120, 280, 260, 40, 7)
             cost = self.hire_count * 15
-            pyxel.text(68, 146, f"Hire: {self.hire_count} ({cost}$)", 10)
-            pyxel.text(68, 156, "UP/DOWN, ENTER", 5)
+            pyxel.text(136, 290, f"Hire: {self.hire_count} ({cost}$)", 10)
+            pyxel.text(136, 304, "UP/DOWN, ENTER", 5)
 
         if self.input_mode == "fire":
-            pyxel.rect(60, 140, 140, 30, 1)
-            pyxel.rectb(60, 140, 140, 30, 7)
-            pyxel.text(68, 146, f"Fire: {self.fire_count}", 10)
-            pyxel.text(68, 156, "UP/DOWN, ENTER", 5)
+            pyxel.rect(120, 280, 260, 40, 1)
+            pyxel.rectb(120, 280, 260, 40, 7)
+            pyxel.text(136, 290, f"Fire: {self.fire_count}", 10)
+            pyxel.text(136, 304, "UP/DOWN, ENTER", 5)
 
         # メッセージ
         if self.message:
-            pyxel.rect(8, SCREEN_HEIGHT - 30, SCREEN_WIDTH - 16, 20, 1)
-            pyxel.rectb(8, SCREEN_HEIGHT - 30, SCREEN_WIDTH - 16, 20, 7)
-            pyxel.text(16, SCREEN_HEIGHT - 24, self.message, 10)
+            pyxel.rect(16, SCREEN_HEIGHT - 40, SCREEN_WIDTH - 32, 24, 1)
+            pyxel.rectb(16, SCREEN_HEIGHT - 40, SCREEN_WIDTH - 32, 24, 7)
+            pyxel.text(32, SCREEN_HEIGHT - 32, self.message, 10)

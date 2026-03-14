@@ -106,17 +106,17 @@ class SetupScene(Scene):
     def draw(self):
         pyxel.cls(0)
 
-        pyxel.text(8, 8, "GAME SETUP", 10)
-        pyxel.line(8, 18, SCREEN_WIDTH - 8, 18, 7)
+        pyxel.text(16, 16, "GAME SETUP", 10)
+        pyxel.line(16, 28, SCREEN_WIDTH - 16, 28, 7)
 
         # 人数
-        y = 30
+        y = 50
         color = 10 if self.cursor_row == 0 else 7
-        pyxel.text(16, y, f"Players: < {self.player_count} >", color)
+        pyxel.text(32, y, f"Players: < {self.player_count} >", color)
 
         # プレイヤー設定
         for i in range(self.player_count):
-            y = 50 + i * 20
+            y = 90 + i * 36
             is_active = self.cursor_row == i + 1
             is_human, char_idx = self.player_settings[i]
             char = self.characters[char_idx]
@@ -127,24 +127,24 @@ class SetupScene(Scene):
             type_color = 10 if is_active and self.cursor_col == 0 else 7
             name_color = 10 if is_active and self.cursor_col == 1 else 7
 
-            pyxel.text(12, y, f"{prefix}P{i + 1}:", 7)
-            pyxel.text(40, y, f"[{type_str}]", type_color)
-            pyxel.text(90, y, f"< {name_str} >", name_color)
+            pyxel.text(24, y, f"{prefix}P{i + 1}:", 7)
+            pyxel.text(80, y, f"[{type_str}]", type_color)
+            pyxel.text(180, y, f"< {name_str} >", name_color)
 
             # キャラの色をプレビュー
-            pyxel.circ(SCREEN_WIDTH - 20, y + 3, 4, char.get("color", 8))
+            pyxel.circ(SCREEN_WIDTH - 40, y + 3, 6, char.get("color", 8))
 
         # 説明
-        pyxel.text(16, 50 + self.player_count * 20 + 5, "D-pad/Arrow: Change", 5)
-        pyxel.text(16, 50 + self.player_count * 20 + 15, "TAB/Y: Switch column", 5)
+        pyxel.text(32, 90 + self.player_count * 36 + 10, "D-pad/Arrow: Change", 5)
+        pyxel.text(32, 90 + self.player_count * 36 + 22, "TAB/Y: Switch column", 5)
 
         # OKボタン
-        ok_y = 160
+        ok_y = 320
         ok_active = self.cursor_row == self.player_count + 1
         ok_color = 10 if ok_active else 7
-        pyxel.text(100, ok_y, "[O.K.]", ok_color)
+        pyxel.text(200, ok_y, "[O.K.]", ok_color)
         if ok_active:
-            pyxel.text(92, ok_y, ">", 10)
+            pyxel.text(192, ok_y, ">", 10)
 
         # 下部説明
-        pyxel.text(8, SCREEN_HEIGHT - 20, "A/ENTER: Select  B/ESC: Back", 5)
+        pyxel.text(16, SCREEN_HEIGHT - 30, "A/ENTER: Select  B/ESC: Back", 5)

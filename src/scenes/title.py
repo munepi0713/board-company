@@ -36,25 +36,25 @@ class TitleScene(Scene):
         title = "BOARD COMPANY"
         tx = (SCREEN_WIDTH - len(title) * 4) // 2
         # 影
-        pyxel.text(tx + 1, 61, title, 1)
-        pyxel.text(tx, 60, title, 10)
+        pyxel.text(tx + 1, 121, title, 1)
+        pyxel.text(tx, 120, title, 10)
 
         # サブタイトル
         sub = "- Company Management Board Game -"
         sx = (SCREEN_WIDTH - len(sub) * 4) // 2
-        pyxel.text(sx, 80, sub, 7)
+        pyxel.text(sx, 150, sub, 7)
 
         # ボード風の装飾（ダミー）
         for i in range(8):
-            x = 40 + i * 22
-            y = 100 + (i % 3) * 5
+            x = 100 + i * 40
+            y = 190 + (i % 3) * 8
             col = [3, 9, 11, 2, 10, 3, 9, 11][i]
-            pyxel.rect(x, y, 14, 14, col)
-            pyxel.rectb(x, y, 14, 14, 1)
+            pyxel.rect(x, y, 28, 28, col)
+            pyxel.rectb(x, y, 28, 28, 1)
 
         # メニュー
         for i, item in enumerate(self.menu_items):
-            y = 150 + i * 16
+            y = 280 + i * 24
             color = 10 if i == self.selected else 7
             prefix = "> " if i == self.selected else "  "
             text = f"{prefix}{item}"
@@ -64,10 +64,10 @@ class TitleScene(Scene):
         # コピーライト
         copy_text = "(C) EXGRACE SOFT"
         cx = (SCREEN_WIDTH - len(copy_text) * 4) // 2
-        pyxel.text(cx, SCREEN_HEIGHT - 16, copy_text, 5)
+        pyxel.text(cx, SCREEN_HEIGHT - 24, copy_text, 5)
 
         # 点滅テキスト
         if self.frame % 60 < 40:
             hint = "Press ENTER / A to start"
             hx = (SCREEN_WIDTH - len(hint) * 4) // 2
-            pyxel.text(hx, 200, hint, 13)
+            pyxel.text(hx, 400, hint, 13)

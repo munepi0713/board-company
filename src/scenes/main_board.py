@@ -9,8 +9,7 @@ from src.core.company_model import Company
 from src.core.card_logic import get_random_card, get_shop_cards, get_normal_cards
 from src.core.event_logic import check_events, apply_event, get_news_content, get_sponsors
 from src.core.ai import AIPlayer
-from src.views.topview.board_view import TopViewBoardView
-from src.views.topview.player_view import TopViewPlayerView
+from src.views.view_base import ViewManager
 from src.ui.dialog import Dialog, ConfirmDialog
 from src.ui.menu import Menu
 from src.ui.hud import HUD
@@ -39,8 +38,7 @@ class MainBoardScene(Scene):
     def __init__(self):
         super().__init__()
         self.game_state = None
-        self.board_view = None
-        self.player_view = None
+        self.view_manager = None
         self.hud = HUD()
         self.dialog = Dialog()
         self.confirm = ConfirmDialog()
@@ -62,8 +60,7 @@ class MainBoardScene(Scene):
         self.company_types = kwargs.get("company_types", [])
         self.characters = kwargs.get("characters", [])
 
-        self.board_view = TopViewBoardView(self.game_state.board)
-        self.player_view = TopViewPlayerView()
+        self.view_manager = ViewManager(self.game_state.board)
 
         # AI初期化
         self.ai_players = {}
@@ -148,6 +145,10 @@ class MainBoardScene(Scene):
         gs = self.game_state
         player = gs.current_player
 
+        # ビュー切り替え（Vキー）
+        if btnp(pyxel.KEY_V):
+            self.view_manager.toggle_view()
+
         # アニメーション更新
         self.dice_anim.update()
         self.move_anim.update()
@@ -230,7 +231,7 @@ class MainBoardScene(Scene):
             # 分岐
             items = [f"Route {chr(65 + i)}" for i in range(len(next_tiles))]
             self.sub_phase = SubPhase.BRANCH
-            self.menu.show(items, 60, 100, on_select=self._on_branch_select, title="Select Route")
+            self.menu.show(items, 120, 200, on_select=self._on_branch_select, title="Select Route")
             return
 
         if len(next_tiles) == 0:
@@ -238,9 +239,9 @@ class MainBoardScene(Scene):
             return
 
         # 移動アニメーション
-        from_pos = self.board_view.tile_screen_pos(player.position)
+        from_pos = self.view_manager.board_view.tile_screen_pos(player.position)
         next_id = next_tiles[0]
-        to_pos = self.board_view.tile_screen_pos(next_id)
+        to_pos = self.view_manager.board_view.tile_screen_pos(next_id)
         player.position = next_id
         player.remaining_moves -= 1
         player.stats.tiles_moved += 1
@@ -259,9 +260,9 @@ class MainBoardScene(Scene):
             return
         player = self.game_state.current_player
         tile = self.game_state.board.get_tile(player.position)
-        from_pos = self.board_view.tile_screen_pos(player.position)
+        from_pos = self.view_manager.board_view.tile_screen_pos(player.position)
         next_id = tile.next_tiles[index]
-        to_pos = self.board_view.tile_screen_pos(next_id)
+        to_pos = self.view_manager.board_view.tile_screen_pos(next_id)
         player.position = next_id
         player.remaining_moves -= 1
         player.stats.tiles_moved += 1
@@ -400,7 +401,7 @@ class MainBoardScene(Scene):
             if affordable:
                 items = [f"{ct['name']} ({ct['construction_cost']}$)" for ct in affordable]
                 self._build_options = affordable
-                self.menu.show(items, 20, 80, on_select=self._on_company_select,
+                self.menu.show(items, 40, 160, on_select=self._on_company_select,
                                title="Select Company")
             else:
                 self.dialog.show("Not enough money!", lambda: self._end_player_action())
@@ -439,7 +440,7 @@ class MainBoardScene(Scene):
         items = [f"{c.name} ({c.price}$)" for c in cards]
         items.append("Leave")
         self._shop_cards = cards
-        self.menu.show(items, 20, 60, on_select=self._on_shop_select, title="Card Shop")
+        self.menu.show(items, 40, 120, on_select=self._on_shop_select, title="Card Shop")
 
     def _on_shop_select(self, index):
         if index < 0 or index >= len(self._shop_cards):
@@ -474,7 +475,7 @@ class MainBoardScene(Scene):
         items = [f"{c.name}" for c in normal]
         items.append("Cancel")
         self._use_card_list = normal
-        self.menu.show(items, 20, 80, on_select=self._on_card_use_select, title="Use Card")
+        self.menu.show(items, 40, 160, on_select=self._on_card_use_select, title="Use Card")
 
     def _on_card_use_select(self, index):
         if index < 0 or index >= len(self._use_card_list):
@@ -617,8 +618,12 @@ class MainBoardScene(Scene):
         # ターン情報
         self.hud.draw_turn_info(gs.turn_number, f"P{player.id}:{player.name}")
 
+        # ビュータイプ表示
+        view_label = "[V]iew: " + self.view_manager.view_type.upper()
+        pyxel.text(SCREEN_WIDTH - len(view_label) * 4 - 4, 2, view_label, 13)
+
         # ボード描画
-        self.board_view.draw_board()
+        self.view_manager.board_view.draw_board()
 
         # プレイヤー描画
         tile_players = {}
@@ -628,20 +633,20 @@ class MainBoardScene(Scene):
             tile_players[p.position].append(p)
 
         for tile_id, players in tile_players.items():
-            sx, sy = self.board_view.tile_screen_pos(tile_id)
+            sx, sy = self.view_manager.board_view.tile_screen_pos(tile_id)
             for i, p in enumerate(players):
                 if self.sub_phase == SubPhase.MOVE_ANIM and p.id == player.id:
                     cx, cy = self.move_anim.current_pos
-                    self.player_view.draw_player(p, cx, cy, 0)
+                    self.view_manager.player_view.draw_player(p, cx, cy, 0)
                 else:
-                    self.player_view.draw_player(p, sx, sy, i)
+                    self.view_manager.player_view.draw_player(p, sx, sy, i)
 
         # プレイヤー所持金
-        self.hud.draw_player_money(gs.players, gs, y=196)
+        self.hud.draw_player_money(gs.players, gs, y=440)
 
         # コマンドバー
         if gs.phase == GamePhase.PLAYER_COMMAND and player.is_human and self.sub_phase == SubPhase.NONE:
-            self.hud.draw_command_bar(self.commands, self.command_selected, y=244)
+            self.hud.draw_command_bar(self.commands, self.command_selected, y=496)
 
         # サイコロアニメーション
         if self.sub_phase in (SubPhase.DICE_ANIM, SubPhase.DICE_RESULT):
@@ -654,33 +659,33 @@ class MainBoardScene(Scene):
 
         # AI表示
         if self.sub_phase == SubPhase.WAITING_AI:
-            pyxel.rect(80, 120, 100, 16, 1)
-            pyxel.rectb(80, 120, 100, 16, 7)
-            pyxel.text(90, 124, f"{player.name} thinking...", 7)
+            pyxel.rect(160, 240, 200, 24, 1)
+            pyxel.rectb(160, 240, 200, 24, 7)
+            pyxel.text(176, 248, f"{player.name} thinking...", 7)
 
     def _draw_dice(self):
         # サイコロ表示
-        dx, dy = 108, 100
-        pyxel.rect(dx, dy, 40, 50, 1)
-        pyxel.rectb(dx, dy, 40, 50, 7)
+        dx, dy = 216, 200
+        pyxel.rect(dx, dy, 80, 90, 1)
+        pyxel.rectb(dx, dy, 80, 90, 7)
 
         # サイコロの目
         value = self.dice_anim.display_value if self.sub_phase == SubPhase.DICE_ANIM else self.game_state.dice_value
-        cx, cy = dx + 20, dy + 18
-        pyxel.rect(cx - 10, cy - 10, 20, 20, 7)
-        pyxel.rectb(cx - 10, cy - 10, 20, 20, 0)
+        cx, cy = dx + 40, dy + 34
+        pyxel.rect(cx - 18, cy - 18, 36, 36, 7)
+        pyxel.rectb(cx - 18, cy - 18, 36, 36, 0)
 
         # 目の配置
         dot_positions = {
             1: [(0, 0)],
-            2: [(-4, -4), (4, 4)],
-            3: [(-4, -4), (0, 0), (4, 4)],
-            4: [(-4, -4), (4, -4), (-4, 4), (4, 4)],
-            5: [(-4, -4), (4, -4), (0, 0), (-4, 4), (4, 4)],
-            6: [(-4, -4), (4, -4), (-4, 0), (4, 0), (-4, 4), (4, 4)],
+            2: [(-8, -8), (8, 8)],
+            3: [(-8, -8), (0, 0), (8, 8)],
+            4: [(-8, -8), (8, -8), (-8, 8), (8, 8)],
+            5: [(-8, -8), (8, -8), (0, 0), (-8, 8), (8, 8)],
+            6: [(-8, -8), (8, -8), (-8, 0), (8, 0), (-8, 8), (8, 8)],
         }
         for px, py in dot_positions.get(value, []):
-            pyxel.circ(cx + px, cy + py, 1, 0)
+            pyxel.circ(cx + px, cy + py, 2, 0)
 
         if self.sub_phase == SubPhase.DICE_RESULT:
-            pyxel.text(dx + 8, dy + 40, f"{value}!", 10)
+            pyxel.text(dx + 28, dy + 70, f"{value}!", 10)

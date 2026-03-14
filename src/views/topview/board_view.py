@@ -23,8 +23,8 @@ class TopViewBoardView(BoardViewBase):
 
     def __init__(self, board_model):
         super().__init__(board_model)
-        self.offset_x = 32
-        self.offset_y = 24
+        self.offset_x = 64
+        self.offset_y = 48
 
     def tile_screen_pos(self, tile_id: int, camera_x=0, camera_y=0):
         tile = self.board_model.get_tile(tile_id)
@@ -61,28 +61,29 @@ class TopViewBoardView(BoardViewBase):
 
         # 会社がある場合、小さな建物アイコン
         if tile.has_company:
-            bx = sx + 2
-            by = sy + 2
-            pyxel.rect(bx, by, 5, 6, 7)  # 建物（白い四角）
-            pyxel.rect(bx + 1, by + 3, 3, 3, 0)  # ドア
-            pyxel.pset(bx + 2, by + 1, 8)  # 窓
+            bx = sx + 4
+            by = sy + 4
+            pyxel.rect(bx, by, 10, 12, 7)  # 建物（白い四角）
+            pyxel.rect(bx + 2, by + 6, 6, 6, 0)  # ドア
+            pyxel.pset(bx + 4, by + 2, 8)  # 窓
+            pyxel.pset(bx + 4, by + 4, 8)  # 窓
 
         # マスタイプ表示
         if tile.tile_type == "plus":
-            pyxel.text(sx + 5, sy + 5, "+", 7)
+            pyxel.text(sx + 12, sy + 12, "+", 7)
         elif tile.tile_type == "minus":
-            pyxel.text(sx + 5, sy + 5, "-", 7)
+            pyxel.text(sx + 12, sy + 12, "-", 7)
         elif tile.tile_type == "card_shop":
-            pyxel.text(sx + 4, sy + 5, "S", 7)
+            pyxel.text(sx + 10, sy + 12, "S", 7)
         elif tile.tile_type == "card":
-            pyxel.text(sx + 4, sy + 5, "C", 7)
+            pyxel.text(sx + 10, sy + 12, "C", 7)
 
     def draw_tile_info(self, tile, x, y):
         """マス情報のツールチップ描画"""
-        pyxel.rect(x, y, 80, 30, 0)
-        pyxel.rectb(x, y, 80, 30, 7)
-        pyxel.text(x + 2, y + 2, tile.name, 7)
+        pyxel.rect(x, y, 120, 40, 0)
+        pyxel.rectb(x, y, 120, 40, 7)
+        pyxel.text(x + 4, y + 4, tile.name, 7)
         if tile.tile_type == "normal":
-            pyxel.text(x + 2, y + 10, f"Price:{tile.land_price}$", 7)
+            pyxel.text(x + 4, y + 14, f"Price:{tile.land_price}$", 7)
             if tile.has_company:
-                pyxel.text(x + 2, y + 18, tile.company.name[:8], 10)
+                pyxel.text(x + 4, y + 24, tile.company.name[:8], 10)
