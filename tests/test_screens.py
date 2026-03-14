@@ -137,6 +137,56 @@ def test_dice_animation():
     print("  PASS")
 
 
+def test_isometric_view():
+    """アイソメトリックビュー切り替えのテスト。"""
+    print("[TEST] Isometric View")
+    schedule = [
+        {"frame": 3, "keys": ["KEY_RETURN"]},   # タイトル → セットアップ
+        {"frame": 4, "keys": []},
+        {"frame": 8, "keys": ["KEY_DOWN"]},
+        {"frame": 9, "keys": []},
+        {"frame": 12, "keys": ["KEY_DOWN"]},
+        {"frame": 13, "keys": []},
+        {"frame": 16, "keys": ["KEY_DOWN"]},
+        {"frame": 17, "keys": []},
+        {"frame": 20, "keys": ["KEY_RETURN"]},    # ゲーム開始
+        {"frame": 21, "keys": []},
+        {"frame": 30, "keys": ["KEY_V"]},          # Vキーでアイソメトリックに切り替え
+        {"frame": 31, "keys": []},
+    ]
+    outdir = run_input_harness(schedule, capture_frames=[35])
+    src = os.path.join(outdir, "frame_0035.png")
+    assert os.path.exists(src), "Isometric view not captured"
+    copy_screenshot(src, "06_isometric.png")
+    print("  PASS")
+
+
+def test_topview_after_toggle():
+    """アイソメトリック→トップビューに戻すテスト。"""
+    print("[TEST] TopView after Toggle")
+    schedule = [
+        {"frame": 3, "keys": ["KEY_RETURN"]},
+        {"frame": 4, "keys": []},
+        {"frame": 8, "keys": ["KEY_DOWN"]},
+        {"frame": 9, "keys": []},
+        {"frame": 12, "keys": ["KEY_DOWN"]},
+        {"frame": 13, "keys": []},
+        {"frame": 16, "keys": ["KEY_DOWN"]},
+        {"frame": 17, "keys": []},
+        {"frame": 20, "keys": ["KEY_RETURN"]},
+        {"frame": 21, "keys": []},
+        {"frame": 30, "keys": ["KEY_V"]},          # アイソメトリックへ
+        {"frame": 31, "keys": []},
+        {"frame": 35, "keys": ["KEY_V"]},          # トップビューに戻す
+        {"frame": 36, "keys": []},
+    ]
+    outdir = run_input_harness(schedule, capture_frames=[40])
+    src = os.path.join(outdir, "frame_0040.png")
+    assert os.path.exists(src), "TopView after toggle not captured"
+    copy_screenshot(src, "07_topview_toggle.png")
+    print("  PASS")
+
+
 def test_gameplay_progression():
     """ゲーム進行（数ターン）のテスト。"""
     print("[TEST] Gameplay Progression")
@@ -183,6 +233,8 @@ def main():
         test_setup_screen,
         test_main_board_screen,
         test_dice_animation,
+        test_isometric_view,
+        test_topview_after_toggle,
         test_gameplay_progression,
     ]
 
