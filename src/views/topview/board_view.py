@@ -1,6 +1,7 @@
 """ボード描画（トップビュー）- ダミーグラフィックス"""
 import pyxel
 from src.views.view_base import BoardViewBase
+from src.ui.font import draw_text
 from src.core.rules import TILE_SIZE
 
 # マスタイプごとの色
@@ -82,8 +83,8 @@ class TopViewBoardView(BoardViewBase):
         """マス情報のツールチップ描画"""
         pyxel.rect(x, y, 120, 40, 0)
         pyxel.rectb(x, y, 120, 40, 7)
-        pyxel.text(x + 4, y + 4, tile.name, 7)
+        draw_text(x + 4, y + 4, tile.name, 7)
         if tile.tile_type == "normal":
-            pyxel.text(x + 4, y + 14, f"Price:{tile.land_price}$", 7)
+            draw_text(x + 4, y + 14, f"価格:{tile.land_price}$", 7)
             if tile.has_company:
-                pyxel.text(x + 4, y + 24, tile.company.name[:8], 10)
+                draw_text(x + 4, y + 24, tile.company.name[:8], 10)

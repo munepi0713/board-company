@@ -1,6 +1,7 @@
 """ダイアログ表示"""
 import pyxel
 from src.ui.input_helper import btnp
+from src.ui.font import draw_text
 from src.core.rules import SCREEN_WIDTH, SCREEN_HEIGHT
 
 
@@ -17,7 +18,6 @@ class Dialog:
         self.visible = True
         self.text = text
         self.on_close = on_close
-        # テキストを折り返し
         self._lines = self._wrap_text(text, 30)
 
     def update(self):
@@ -42,19 +42,20 @@ class Dialog:
 
         # テキスト
         for i, line in enumerate(self._lines):
-            pyxel.text(x + 6, y + 6 + i * 10, line, 7)
+            draw_text(x + 6, y + 6 + i * 10, line, 7)
 
         # Enter表示
-        pyxel.text(x + w - 24, y + h - 10, "[A]", 13)
+        draw_text(x + w - 24, y + h - 10, "[A]", 13)
 
     def _wrap_text(self, text: str, max_chars: int) -> list:
         lines = []
-        while text:
-            if len(text) <= max_chars:
-                lines.append(text)
-                break
-            lines.append(text[:max_chars])
-            text = text[max_chars:]
+        for part in text.split("\n"):
+            while part:
+                if len(part) <= max_chars:
+                    lines.append(part)
+                    break
+                lines.append(part[:max_chars])
+                part = part[max_chars:]
         return lines
 
 
@@ -74,12 +75,13 @@ class ConfirmDialog:
         self.selected = 0
         self.on_result = on_result
         self._lines = []
-        while text:
-            if len(text) <= 28:
-                self._lines.append(text)
-                break
-            self._lines.append(text[:28])
-            text = text[28:]
+        for part in text.split("\n"):
+            while part:
+                if len(part) <= 28:
+                    self._lines.append(part)
+                    break
+                self._lines.append(part[:28])
+                part = part[28:]
 
     def update(self):
         if not self.visible:
@@ -103,18 +105,18 @@ class ConfirmDialog:
         pyxel.rectb(x, y, w, h, 7)
 
         for i, line in enumerate(self._lines):
-            pyxel.text(x + 6, y + 6 + i * 10, line, 7)
+            draw_text(x + 6, y + 6 + i * 10, line, 7)
 
         btn_y = y + h - 14
         # はい
         yes_color = 10 if self.selected == 0 else 7
-        pyxel.text(x + 60, btn_y, "[O.K.]", yes_color)
+        draw_text(x + 60, btn_y, "[はい]", yes_color)
         # いいえ
         no_color = 10 if self.selected == 1 else 7
-        pyxel.text(x + 120, btn_y, "[Cancel]", no_color)
+        draw_text(x + 140, btn_y, "[いいえ]", no_color)
 
         # カーソル
         if self.selected == 0:
-            pyxel.text(x + 52, btn_y, ">", 10)
+            draw_text(x + 52, btn_y, ">", 10)
         else:
-            pyxel.text(x + 112, btn_y, ">", 10)
+            draw_text(x + 132, btn_y, ">", 10)

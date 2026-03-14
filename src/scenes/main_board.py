@@ -3,6 +3,7 @@ import random
 import pyxel
 from src.scenes.scene_base import Scene
 from src.ui.input_helper import btnp
+from src.ui.font import draw_text
 from src.core.rules import SCREEN_WIDTH, SCREEN_HEIGHT, LAND_FEE_RATE, COMPANY_FEE_RATE
 from src.core.game_state import GameState, GamePhase
 from src.core.company_model import Company
@@ -50,7 +51,7 @@ class MainBoardScene(Scene):
         self.ai_players = {}
         self.sub_phase = SubPhase.NONE
         self.command_selected = 0
-        self.commands = ["Dice", "Data", "Card"]
+        self.commands = ["サイコロ", "データ", "カード"]
         self.ai_timer = 0
         self.moving_player_pos = None
         self.pending_action = None
@@ -202,11 +203,11 @@ class MainBoardScene(Scene):
             return  # メニューで処理
 
     def _execute_command(self, cmd_index):
-        if cmd_index == 0:  # Dice
+        if cmd_index == 0:  # サイコロ
             self._roll_dice()
-        elif cmd_index == 1:  # Data
+        elif cmd_index == 1:  # データ
             self._show_data()
-        elif cmd_index == 2:  # Card
+        elif cmd_index == 2:  # カード
             self._use_card()
 
     def _roll_dice(self):
@@ -229,9 +230,9 @@ class MainBoardScene(Scene):
 
         if len(next_tiles) > 1:
             # 分岐
-            items = [f"Route {chr(65 + i)}" for i in range(len(next_tiles))]
+            items = [f"ルート{chr(65 + i)}" for i in range(len(next_tiles))]
             self.sub_phase = SubPhase.BRANCH
-            self.menu.show(items, 120, 200, on_select=self._on_branch_select, title="Select Route")
+            self.menu.show(items, 120, 200, on_select=self._on_branch_select, title="ルート選択")
             return
 
         if len(next_tiles) == 0:
@@ -279,13 +280,13 @@ class MainBoardScene(Scene):
         if action == "plus":
             player.add_money(tile.plus_minus_amount)
             self.dialog.show(
-                f"+{tile.plus_minus_amount}$ received!",
+                f"+{tile.plus_minus_amount}$ もらった！",
                 lambda: self._end_player_action()
             )
         elif action == "minus":
             player.pay(tile.plus_minus_amount)
             self.dialog.show(
-                f"-{tile.plus_minus_amount}$ paid...",
+                f"-{tile.plus_minus_amount}$ 支払った...",
                 lambda: self._end_player_action()
             )
         elif action == "card_get":
@@ -293,17 +294,17 @@ class MainBoardScene(Scene):
                 card = get_random_card()
                 player.add_card(card)
                 self.dialog.show(
-                    f"Got card: {card.name}",
+                    f"カード入手: {card.name}",
                     lambda: self._end_player_action()
                 )
             else:
-                self.dialog.show("Cards full! (7/7)", lambda: self._end_player_action())
+                self.dialog.show("カードがいっぱい！(7/7)", lambda: self._end_player_action())
         elif action == "card_shop":
             self._open_card_shop()
         elif action == "empty_land":
             if player.is_human:
                 self.confirm.show(
-                    f"Buy land? ({tile.land_price}$)",
+                    f"土地を買う？({tile.land_price}$)",
                     lambda yes: self._on_buy_land(yes, tile)
                 )
             else:
@@ -311,7 +312,7 @@ class MainBoardScene(Scene):
         elif action == "own_land_no_company":
             if player.is_human:
                 self.confirm.show(
-                    "Build a company?",
+                    "会社を建てる？",
                     lambda yes: self._on_build_confirm(yes, tile)
                 )
             else:
@@ -329,7 +330,7 @@ class MainBoardScene(Scene):
             if owner:
                 owner.add_money(fee)
             self.dialog.show(
-                f"Land fee: {fee}$",
+                f"土地使用料: {fee}$",
                 lambda: self.change_scene("management", game_state=gs, tile=tile,
                                           company_types=self.company_types,
                                           characters=self.characters)
@@ -341,7 +342,7 @@ class MainBoardScene(Scene):
             if comp_owner:
                 comp_owner.pay(fee)
             self.dialog.show(
-                f"Company fee received: {fee}$",
+                f"会社使用料を受け取った: {fee}$",
                 lambda: self._end_player_action()
             )
         else:
@@ -369,7 +370,7 @@ class MainBoardScene(Scene):
         # 戦闘開始
         if comp_owner and comp_owner.id != player.id:
             self.dialog.show(
-                f"Fee paid: {total_fee}$\nBattle starts!",
+                f"使用料: {total_fee}$\nバトル開始！",
                 lambda: self.change_scene("battle", game_state=gs,
                                           attacker=player, defender=comp_owner,
                                           battle_tile=tile,
@@ -377,7 +378,7 @@ class MainBoardScene(Scene):
                                           characters=self.characters)
             )
         else:
-            self.dialog.show(f"Fee paid: {total_fee}$", lambda: self._end_player_action())
+            self.dialog.show(f"使用料: {total_fee}$", lambda: self._end_player_action())
 
     def _on_buy_land(self, yes, tile):
         if yes:
@@ -386,11 +387,11 @@ class MainBoardScene(Scene):
                 tile.land_owner_id = player.id
                 player.owned_land_ids.append(tile.id)
                 self.confirm.show(
-                    "Build a company?",
+                    "会社を建てる？",
                     lambda y: self._on_build_confirm(y, tile)
                 )
             else:
-                self.dialog.show("Not enough money!", lambda: self._end_player_action())
+                self.dialog.show("お金が足りない！", lambda: self._end_player_action())
         else:
             self._end_player_action()
 
@@ -402,9 +403,9 @@ class MainBoardScene(Scene):
                 items = [f"{ct['name']} ({ct['construction_cost']}$)" for ct in affordable]
                 self._build_options = affordable
                 self.menu.show(items, 40, 160, on_select=self._on_company_select,
-                               title="Select Company")
+                               title="会社を選択")
             else:
-                self.dialog.show("Not enough money!", lambda: self._end_player_action())
+                self.dialog.show("お金が足りない！", lambda: self._end_player_action())
         else:
             self._end_player_action()
 
@@ -427,9 +428,9 @@ class MainBoardScene(Scene):
             )
             tile.company = company
             player.owned_company_ids.append(tile.id)
-            self.dialog.show(f"Built {ct['name']}!", lambda: self._end_player_action())
+            self.dialog.show(f"{ct['name']}を建設した！", lambda: self._end_player_action())
         else:
-            self.dialog.show("Not enough money!", lambda: self._end_player_action())
+            self.dialog.show("お金が足りない！", lambda: self._end_player_action())
 
     def _open_card_shop(self):
         player = self.game_state.current_player
@@ -438,9 +439,9 @@ class MainBoardScene(Scene):
             return
         cards = get_shop_cards(4)
         items = [f"{c.name} ({c.price}$)" for c in cards]
-        items.append("Leave")
+        items.append("やめる")
         self._shop_cards = cards
-        self.menu.show(items, 40, 120, on_select=self._on_shop_select, title="Card Shop")
+        self.menu.show(items, 40, 120, on_select=self._on_shop_select, title="カード売り場")
 
     def _on_shop_select(self, index):
         if index < 0 or index >= len(self._shop_cards):
@@ -450,19 +451,19 @@ class MainBoardScene(Scene):
         player = self.game_state.current_player
         if player.pay(card.price) and player.can_hold_card:
             player.add_card(card)
-            self.dialog.show(f"Bought {card.name}!", lambda: self._end_player_action())
+            self.dialog.show(f"{card.name}を購入した！", lambda: self._end_player_action())
         else:
-            self.dialog.show("Cannot buy!", lambda: self._end_player_action())
+            self.dialog.show("購入できない！", lambda: self._end_player_action())
 
     def _show_data(self):
         player = self.game_state.current_player
         assets = self.game_state.get_player_total_assets(player)
         text = (
             f"{player.name}\n"
-            f"Money: {player.money}$\n"
-            f"Assets: {assets}$\n"
-            f"Lands: {len(player.owned_land_ids)}\n"
-            f"Cards: {player.card_count}/7"
+            f"所持金: {player.money}$\n"
+            f"総資産: {assets}$\n"
+            f"土地: {len(player.owned_land_ids)}\n"
+            f"カード: {player.card_count}/7"
         )
         self.dialog.show(text)
 
@@ -470,12 +471,12 @@ class MainBoardScene(Scene):
         player = self.game_state.current_player
         normal = get_normal_cards(player.cards)
         if not normal:
-            self.dialog.show("No usable cards!")
+            self.dialog.show("使えるカードがない！")
             return
         items = [f"{c.name}" for c in normal]
-        items.append("Cancel")
+        items.append("やめる")
         self._use_card_list = normal
-        self.menu.show(items, 40, 160, on_select=self._on_card_use_select, title="Use Card")
+        self.menu.show(items, 40, 160, on_select=self._on_card_use_select, title="カード使用")
 
     def _on_card_use_select(self, index):
         if index < 0 or index >= len(self._use_card_list):
@@ -493,20 +494,20 @@ class MainBoardScene(Scene):
             self.dice_anim.start_roll(value, on_complete=lambda: self._on_dice_done())
         elif card.id == "teleport":
             player.position = self.game_state.board.get_random_tile_id()
-            self.dialog.show("Teleported!", lambda: self._on_movement_complete())
+            self.dialog.show("テレポートした！", lambda: self._on_movement_complete())
         elif card.id == "slow":
             targets = [p for p in self.game_state.active_players if p.id != player.id]
             if targets:
                 target = random.choice(targets)
                 target.slow_debuff_turns = 5
-                self.dialog.show(f"{target.name} is slowed!", lambda: self._end_player_action())
+                self.dialog.show(f"{target.name}の足が遅くなった！", lambda: self._end_player_action())
             else:
                 self._end_player_action()
         elif card.id == "tax_audit":
             target = random.choice(self.game_state.active_players)
             loss = self.game_state.get_player_total_assets(target) // 3
             target.pay(min(loss, target.money))
-            self.dialog.show(f"Tax audit on {target.name}! -{loss}$",
+            self.dialog.show(f"{target.name}に税務調査！ -{loss}$",
                              lambda: self._end_player_action())
         else:
             self._roll_dice()
@@ -619,8 +620,8 @@ class MainBoardScene(Scene):
         self.hud.draw_turn_info(gs.turn_number, f"P{player.id}:{player.name}")
 
         # ビュータイプ表示
-        view_label = "[V]iew: " + self.view_manager.view_type.upper()
-        pyxel.text(SCREEN_WIDTH - len(view_label) * 4 - 4, 2, view_label, 13)
+        view_label = "[V]表示: " + self.view_manager.view_type.upper()
+        draw_text(SCREEN_WIDTH - len(view_label) * 8 - 4, 2, view_label, 13)
 
         # ボード描画
         self.view_manager.board_view.draw_board()
@@ -661,7 +662,7 @@ class MainBoardScene(Scene):
         if self.sub_phase == SubPhase.WAITING_AI:
             pyxel.rect(160, 240, 200, 24, 1)
             pyxel.rectb(160, 240, 200, 24, 7)
-            pyxel.text(176, 248, f"{player.name} thinking...", 7)
+            draw_text(176, 248, f"{player.name} 思考中...", 7)
 
     def _draw_dice(self):
         # サイコロ表示
@@ -688,4 +689,4 @@ class MainBoardScene(Scene):
             pyxel.circ(cx + px, cy + py, 2, 0)
 
         if self.sub_phase == SubPhase.DICE_RESULT:
-            pyxel.text(dx + 28, dy + 70, f"{value}!", 10)
+            draw_text(dx + 28, dy + 70, f"{value}！", 10)
