@@ -3,6 +3,7 @@ import random
 import pyxel
 from src.scenes.scene_base import Scene
 from src.ui.input_helper import btnp
+from src.ui.font import draw_text
 from src.core.rules import SCREEN_WIDTH, SCREEN_HEIGHT
 from src.core.player_model import Player
 from src.core.game_state import GameState, GamePhase
@@ -106,13 +107,13 @@ class SetupScene(Scene):
     def draw(self):
         pyxel.cls(0)
 
-        pyxel.text(16, 16, "GAME SETUP", 10)
+        draw_text(16, 16, "ゲーム設定", 10)
         pyxel.line(16, 28, SCREEN_WIDTH - 16, 28, 7)
 
         # 人数
         y = 50
         color = 10 if self.cursor_row == 0 else 7
-        pyxel.text(32, y, f"Players: < {self.player_count} >", color)
+        draw_text(32, y, f"人数: < {self.player_count} >", color)
 
         # プレイヤー設定
         for i in range(self.player_count):
@@ -120,31 +121,31 @@ class SetupScene(Scene):
             is_active = self.cursor_row == i + 1
             is_human, char_idx = self.player_settings[i]
             char = self.characters[char_idx]
-            type_str = "HUMAN" if is_human else "CPU  "
+            type_str = "人間" if is_human else "CPU "
             name_str = char["name"]
 
             prefix = ">" if is_active else " "
             type_color = 10 if is_active and self.cursor_col == 0 else 7
             name_color = 10 if is_active and self.cursor_col == 1 else 7
 
-            pyxel.text(24, y, f"{prefix}P{i + 1}:", 7)
-            pyxel.text(80, y, f"[{type_str}]", type_color)
-            pyxel.text(180, y, f"< {name_str} >", name_color)
+            draw_text(24, y, f"{prefix}P{i + 1}:", 7)
+            draw_text(80, y, f"[{type_str}]", type_color)
+            draw_text(180, y, f"< {name_str} >", name_color)
 
             # キャラの色をプレビュー
             pyxel.circ(SCREEN_WIDTH - 40, y + 3, 6, char.get("color", 8))
 
         # 説明
-        pyxel.text(32, 90 + self.player_count * 36 + 10, "D-pad/Arrow: Change", 5)
-        pyxel.text(32, 90 + self.player_count * 36 + 22, "TAB/Y: Switch column", 5)
+        draw_text(32, 90 + self.player_count * 36 + 10, "十字キー: 変更", 5)
+        draw_text(32, 90 + self.player_count * 36 + 22, "TAB/Y: 列切替", 5)
 
         # OKボタン
         ok_y = 320
         ok_active = self.cursor_row == self.player_count + 1
         ok_color = 10 if ok_active else 7
-        pyxel.text(200, ok_y, "[O.K.]", ok_color)
+        draw_text(200, ok_y, "[決定]", ok_color)
         if ok_active:
-            pyxel.text(192, ok_y, ">", 10)
+            draw_text(192, ok_y, ">", 10)
 
         # 下部説明
-        pyxel.text(16, SCREEN_HEIGHT - 30, "A/ENTER: Select  B/ESC: Back", 5)
+        draw_text(16, SCREEN_HEIGHT - 30, "A/ENTER: 決定  B/ESC: 戻る", 5)

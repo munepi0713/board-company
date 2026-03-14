@@ -1,6 +1,7 @@
 """メニュー表示・選択"""
 import pyxel
 from src.ui.input_helper import btnp
+from src.ui.font import draw_text
 
 
 class Menu:
@@ -44,23 +45,23 @@ class Menu:
         if not self.visible:
             return
 
-        w = 120
+        w = 200
         title_h = 12 if self.title else 0
-        h = len(self.items) * 10 + 8 + title_h
+        h = len(self.items) * 12 + 8 + title_h
         x, y = self.x, self.y
 
         pyxel.rect(x, y, w, h, 1)
         pyxel.rectb(x, y, w, h, 7)
 
         if self.title:
-            pyxel.text(x + 4, y + 4, self.title, 10)
+            draw_text(x + 4, y + 4, self.title, 10)
 
         for i, item in enumerate(self.items):
-            iy = y + 4 + title_h + i * 10
+            iy = y + 4 + title_h + i * 12
             label = item if isinstance(item, str) else item.get("label", str(item))
             color = 10 if i == self.selected else 7
             prefix = ">" if i == self.selected else " "
-            pyxel.text(x + 4, iy, f"{prefix}{label}", color)
+            draw_text(x + 4, iy, f"{prefix}{label}", color)
 
 
 class HorizontalMenu:
@@ -100,7 +101,7 @@ class HorizontalMenu:
 
         x = self.x
         y = self.y
-        w = sum(len(item) * 4 + 16 for item in self.items) + 8
+        w = sum(len(item) * 8 + 16 for item in self.items) + 8
         pyxel.rect(x, y, w, 14, 1)
         pyxel.rectb(x, y, w, 14, 7)
 
@@ -108,5 +109,5 @@ class HorizontalMenu:
         for i, item in enumerate(self.items):
             color = 10 if i == self.selected else 7
             prefix = ">" if i == self.selected else " "
-            pyxel.text(cx, y + 4, f"{prefix}{item}", color)
-            cx += len(item) * 4 + 16
+            draw_text(cx, y + 4, f"{prefix}{item}", color)
+            cx += len(item) * 8 + 16

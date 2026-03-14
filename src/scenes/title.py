@@ -2,6 +2,7 @@
 import pyxel
 from src.scenes.scene_base import Scene
 from src.ui.input_helper import btnp
+from src.ui.font import draw_text
 from src.core.rules import SCREEN_WIDTH, SCREEN_HEIGHT
 
 
@@ -9,7 +10,7 @@ class TitleScene(Scene):
     def __init__(self):
         super().__init__()
         self.selected = 0
-        self.menu_items = ["START", "CONTINUE"]
+        self.menu_items = ["はじめから", "つづきから"]
         self.frame = 0
 
     def enter(self, **kwargs):
@@ -32,17 +33,17 @@ class TitleScene(Scene):
     def draw(self):
         pyxel.cls(0)
 
-        # タイトルロゴ（ダミー）
-        title = "BOARD COMPANY"
-        tx = (SCREEN_WIDTH - len(title) * 4) // 2
+        # タイトルロゴ
+        title = "ボードカンパニー"
+        tx = (SCREEN_WIDTH - len(title) * 8) // 2
         # 影
-        pyxel.text(tx + 1, 121, title, 1)
-        pyxel.text(tx, 120, title, 10)
+        draw_text(tx + 1, 121, title, 1)
+        draw_text(tx, 120, title, 10)
 
         # サブタイトル
-        sub = "- Company Management Board Game -"
-        sx = (SCREEN_WIDTH - len(sub) * 4) // 2
-        pyxel.text(sx, 150, sub, 7)
+        sub = "- 会社経営ボードゲーム -"
+        sx = (SCREEN_WIDTH - len(sub) * 8) // 2
+        draw_text(sx, 150, sub, 7)
 
         # ボード風の装飾（ダミー）
         for i in range(8):
@@ -58,8 +59,8 @@ class TitleScene(Scene):
             color = 10 if i == self.selected else 7
             prefix = "> " if i == self.selected else "  "
             text = f"{prefix}{item}"
-            x = (SCREEN_WIDTH - len(text) * 4) // 2
-            pyxel.text(x, y, text, color)
+            x = (SCREEN_WIDTH - len(text) * 8) // 2
+            draw_text(x, y, text, color)
 
         # コピーライト
         copy_text = "(C) EXGRACE SOFT"
@@ -68,6 +69,6 @@ class TitleScene(Scene):
 
         # 点滅テキスト
         if self.frame % 60 < 40:
-            hint = "Press ENTER / A to start"
-            hx = (SCREEN_WIDTH - len(hint) * 4) // 2
-            pyxel.text(hx, 400, hint, 13)
+            hint = "ENTER / Aボタン でスタート"
+            hx = (SCREEN_WIDTH - len(hint) * 8) // 2
+            draw_text(hx, 400, hint, 13)

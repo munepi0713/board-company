@@ -2,6 +2,7 @@
 import pyxel
 from src.scenes.scene_base import Scene
 from src.ui.input_helper import btnp
+from src.ui.font import draw_text
 from src.core.rules import SCREEN_WIDTH, SCREEN_HEIGHT
 from src.core.event_logic import check_events, apply_event, get_news_content, get_sponsors
 
@@ -93,12 +94,12 @@ class NewsScene(Scene):
         pyxel.rect(32, 32, SCREEN_WIDTH - 64, 280, 0)
         pyxel.rectb(32, 32, SCREEN_WIDTH - 64, 280, 10)
 
-        # BOARD NEWS ヘッダー
+        # ボードニュース ヘッダー
         pyxel.rect(80, 40, 352, 24, 1)
         pyxel.rectb(80, 40, 352, 24, 10)
-        title = "BOARD NEWS"
-        tx = (SCREEN_WIDTH - len(title) * 4) // 2
-        pyxel.text(tx, 48, title, 10)
+        title = "ボードニュース"
+        tx = (SCREEN_WIDTH - len(title) * 8) // 2
+        draw_text(tx, 48, title, 10)
 
         # キャスター（ダミー）
         cx, cy = 120, 120
@@ -126,32 +127,32 @@ class NewsScene(Scene):
         if self.phase == "sponsor":
             sp1 = self.sponsors[0] if len(self.sponsors) > 0 else "EXGRACE SOFT"
             sp2 = self.sponsors[1] if len(self.sponsors) > 1 else "EXGRACE SOFT"
-            pyxel.text(216, 110, "Presented by:", 7)
-            pyxel.text(216, 140, sp1[:12], 10)
-            pyxel.text(216, 165, sp2[:12], 10)
+            draw_text(216, 110, "提供:", 7)
+            draw_text(216, 140, sp1[:12], 10)
+            draw_text(216, 165, sp2[:12], 10)
 
         elif self.phase == "news":
             # テキストを表示
             display = self.news_text[:self.text_pos]
-            lines = self._wrap(display, 40)
+            lines = self._wrap(display, 20)
             for i, line in enumerate(lines[:8]):
-                pyxel.text(216, 100 + i * 14, line, 7)
+                draw_text(216, 100 + i * 14, line, 7)
 
         elif self.phase == "end":
-            pyxel.text(216, 130, "Thank you for", 7)
-            pyxel.text(216, 150, "watching!", 7)
+            draw_text(216, 130, "ご視聴ありがとう", 7)
+            draw_text(216, 150, "ございました！", 7)
 
         # 下部：ターン情報
         pyxel.rect(32, 340, SCREEN_WIDTH - 64, 30, 0)
         pyxel.rectb(32, 340, SCREEN_WIDTH - 64, 30, 7)
-        pyxel.text(48, 350, f"Turn {self.game_state.turn_number}  [Enter]", 7)
+        draw_text(48, 350, f"ターン {self.game_state.turn_number}  [Enter]", 7)
 
         # プレイヤー情報
         y = 390
         for i, p in enumerate(self.game_state.players):
             if not p.is_bankrupt:
-                pyxel.text(16 + (i % 2) * 256, y + (i // 2) * 14,
-                           f"P{p.id}:{p.name[:4]} ${p.money}", p.color)
+                draw_text(16 + (i % 2) * 256, y + (i // 2) * 14,
+                          f"P{p.id}:{p.name[:4]} ${p.money}", p.color)
 
     def _wrap(self, text, max_chars):
         lines = []
