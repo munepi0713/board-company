@@ -69,6 +69,6 @@ class TitleScene(Scene):
 
         # 点滅テキスト
         if self.frame % 60 < 40:
-            hint = "ENTER / Aボタン でスタート"
+            hint = "ENTER / A ではじめる"
             hx = (SCREEN_WIDTH - len(hint) * 8) // 2
             draw_text(hx, 400, hint, 13)
