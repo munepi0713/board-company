@@ -121,7 +121,7 @@ class SetupScene(Scene):
             is_active = self.cursor_row == i + 1
             is_human, char_idx = self.player_settings[i]
             char = self.characters[char_idx]
-            type_str = "人間" if is_human else "CPU "
+            type_str = "プレイヤー" if is_human else "CPU      "
             name_str = char["name"]
 
             prefix = ">" if is_active else " "
@@ -130,7 +130,7 @@ class SetupScene(Scene):
 
             draw_text(24, y, f"{prefix}P{i + 1}:", 7)
             draw_text(80, y, f"[{type_str}]", type_color)
-            draw_text(180, y, f"< {name_str} >", name_color)
+            draw_text(200, y, f"< {name_str} >", name_color)
 
             # キャラの色をプレビュー
             pyxel.circ(SCREEN_WIDTH - 40, y + 3, 6, char.get("color", 8))
