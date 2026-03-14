@@ -97,9 +97,9 @@ class NewsScene(Scene):
         # ボードニュース ヘッダー
         pyxel.rect(80, 40, 352, 24, 1)
         pyxel.rectb(80, 40, 352, 24, 10)
-        title = "ボードニュース"
-        tx = (SCREEN_WIDTH - len(title) * 8) // 2
-        draw_text(tx, 48, title, 10)
+        title = "BOARD NEWS"
+        tx = (SCREEN_WIDTH - len(title) * 4) // 2
+        pyxel.text(tx, 48, title, 10)
 
         # キャスター（ダミー）
         cx, cy = 120, 120

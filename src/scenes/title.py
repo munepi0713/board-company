@@ -34,11 +34,11 @@ class TitleScene(Scene):
         pyxel.cls(0)
 
         # タイトルロゴ
-        title = "ボードカンパニー"
-        tx = (SCREEN_WIDTH - len(title) * 8) // 2
+        title = "BOARD COMPANY"
+        tx = (SCREEN_WIDTH - len(title) * 4) // 2
         # 影
-        draw_text(tx + 1, 121, title, 1)
-        draw_text(tx, 120, title, 10)
+        pyxel.text(tx + 1, 121, title, 1)
+        pyxel.text(tx, 120, title, 10)
 
         # サブタイトル
         sub = "- 会社経営ボードゲーム -"
