@@ -20,6 +20,14 @@ class BoardViewBase(ABC):
     def tile_screen_pos(self, tile_id: int, camera_x=0, camera_y=0):
         pass
 
+    def tile_image_pos(self, tile_id):
+        """タイルのイメージバンク上の中心座標を返す"""
+        return (128, 128)
+
+    def draw_board_to_image(self, img, players=None, move_info=None):
+        """ボード＋プレイヤーをイメージバンクに描画（blt3d用）"""
+        pass
+
 
 class PlayerViewBase(ABC):
     """プレイヤー描画の基底クラス"""
