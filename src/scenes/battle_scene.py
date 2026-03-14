@@ -217,7 +217,7 @@ class BattleScene(Scene):
         pyxel.cls(0)
 
         # ヘッダー
-        pyxel.text(80, 4, "=== BATTLE ===", 8)
+        pyxel.text(200, 8, "=== BATTLE ===", 8)
 
         atk = self.battle.attacker
         dfs = self.battle.defender
@@ -225,32 +225,32 @@ class BattleScene(Scene):
         dfs_s = self.battle.defender_stats
 
         # 左側（攻撃者）
-        self._draw_fighter(8, 20, atk, atk_s, self.battle.is_attacker_turn)
+        self._draw_fighter(32, 40, atk, atk_s, self.battle.is_attacker_turn)
         # VS
-        pyxel.text(120, 50, "VS", 8)
+        pyxel.text(248, 100, "VS", 8)
         # 右側（防御者）
-        self._draw_fighter(136, 20, dfs, dfs_s, not self.battle.is_attacker_turn)
+        self._draw_fighter(280, 40, dfs, dfs_s, not self.battle.is_attacker_turn)
 
         # コマンド
         if self.phase == BattlePhase.COMMAND:
             current = self._current_fighter()
-            pyxel.rect(8, 130, 240, 16, 1)
-            pyxel.rectb(8, 130, 240, 16, 7)
-            cx = 16
+            pyxel.rect(16, 280, 480, 20, 1)
+            pyxel.rectb(16, 280, 480, 20, 7)
+            cx = 32
             for i, cmd in enumerate(self.commands):
                 color = 10 if i == self.selected else 7
                 prefix = ">" if i == self.selected else " "
-                pyxel.text(cx, 134, f"{prefix}{cmd}", color)
-                cx += 60
+                pyxel.text(cx, 286, f"{prefix}{cmd}", color)
+                cx += 120
 
         # メッセージ
         if self.message:
-            pyxel.rect(8, 160, 240, 24, 1)
-            pyxel.rectb(8, 160, 240, 24, 7)
-            pyxel.text(16, 166, self.message, 10)
+            pyxel.rect(16, 330, 480, 30, 1)
+            pyxel.rectb(16, 330, 480, 30, 7)
+            pyxel.text(32, 340, self.message, 10)
 
         # ターン数
-        pyxel.text(8, SCREEN_HEIGHT - 12, f"Battle Turn: {self.battle.turn + 1}", 5)
+        pyxel.text(16, SCREEN_HEIGHT - 16, f"Battle Turn: {self.battle.turn + 1}", 5)
 
     def _draw_fighter(self, x, y, player, stats, is_active):
         # 名前
@@ -258,22 +258,22 @@ class BattleScene(Scene):
         pyxel.text(x, y, player.name, name_color)
 
         # キャラダミー
-        pyxel.rect(x + 30, y + 14, 20, 24, player.color)
-        pyxel.circ(x + 40, y + 12, 6, player.color)
-        pyxel.text(x + 37, y + 22, str(player.id), 7)
+        pyxel.rect(x + 50, y + 20, 36, 44, player.color)
+        pyxel.circ(x + 68, y + 16, 10, player.color)
+        pyxel.text(x + 65, y + 36, str(player.id), 7)
 
         # HP bar
-        bar_y = y + 44
+        bar_y = y + 80
         pyxel.text(x, bar_y, f"HP:", 7)
-        bar_w = 80
+        bar_w = 160
         hp_ratio = max(0, stats.hp / stats.max_hp) if stats.max_hp > 0 else 0
-        pyxel.rect(x + 16, bar_y, bar_w, 6, 5)
+        pyxel.rect(x + 20, bar_y, bar_w, 8, 5)
         hp_color = 11 if hp_ratio > 0.5 else (10 if hp_ratio > 0.25 else 8)
-        pyxel.rect(x + 16, bar_y, int(bar_w * hp_ratio), 6, hp_color)
-        pyxel.text(x + 16, bar_y + 8, f"{stats.hp}/{stats.max_hp}", 7)
+        pyxel.rect(x + 20, bar_y, int(bar_w * hp_ratio), 8, hp_color)
+        pyxel.text(x + 20, bar_y + 12, f"{stats.hp}/{stats.max_hp}", 7)
 
         # Stats
-        stat_y = bar_y + 20
+        stat_y = bar_y + 28
         pyxel.text(x, stat_y, f"ATK:{int(stats.attack * stats.attack_multiplier)}", 7)
-        pyxel.text(x, stat_y + 8, f"DEF:{int(stats.defense * stats.defense_multiplier)}", 7)
-        pyxel.text(x, stat_y + 16, f"SPD:{int(stats.speed * stats.speed_multiplier)}", 7)
+        pyxel.text(x, stat_y + 12, f"DEF:{int(stats.defense * stats.defense_multiplier)}", 7)
+        pyxel.text(x, stat_y + 24, f"SPD:{int(stats.speed * stats.speed_multiplier)}", 7)

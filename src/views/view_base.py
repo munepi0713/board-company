@@ -31,3 +31,36 @@ class PlayerViewBase(ABC):
     @abstractmethod
     def draw_move_animation(self, player, from_pos, to_pos, progress: float):
         pass
+
+
+class ViewManager:
+    """ビューの切り替えを管理（ボード層＋プレイヤー層のみ）"""
+
+    def __init__(self, board_model):
+        from src.views.topview.board_view import TopViewBoardView
+        from src.views.topview.player_view import TopViewPlayerView
+        from src.views.isometric.board_view import IsometricBoardView
+        from src.views.isometric.player_view import IsometricPlayerView
+
+        self.board_model = board_model
+        self.view_type = "topview"
+        self._board_views = {
+            "topview": TopViewBoardView(board_model),
+            "isometric": IsometricBoardView(board_model),
+        }
+        self._player_views = {
+            "topview": TopViewPlayerView(),
+            "isometric": IsometricPlayerView(),
+        }
+
+    @property
+    def board_view(self):
+        return self._board_views[self.view_type]
+
+    @property
+    def player_view(self):
+        return self._player_views[self.view_type]
+
+    def toggle_view(self):
+        """トップビュー⇔アイソメトリックを切り替え"""
+        self.view_type = "isometric" if self.view_type == "topview" else "topview"
