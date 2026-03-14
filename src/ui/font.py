@@ -2,8 +2,8 @@
 import os
 import pyxel
 
-# 美咲ゴシック（8x8ドット日本語フォント）
-_FONT_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "fonts", "misaki_gothic.ttf")
+# UmePlus Gothic 12px（梅フォント+M+フォント合成、12ドット日本語フォント）
+_FONT_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "fonts", "umplus_j12r.bdf")
 _jp_font = None
 
 
