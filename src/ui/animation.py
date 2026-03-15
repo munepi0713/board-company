@@ -98,11 +98,12 @@ class TileZoomAnimation(Animation):
     ZOOM_OUT_DURATION = 15
     IMG_CENTER = 128  # イメージバンク中心
 
-    # 通常時カメラ（俯瞰・パースあり）
-    NORMAL_X = 128
-    NORMAL_Y = 220
-    NORMAL_Z = 120
+    # 通常時カメラ（俯瞰・パースあり、rot_y=45でダイヤモンド表示）
+    NORMAL_X = 55
+    NORMAL_Y = 210
+    NORMAL_Z = 130
     NORMAL_RX = 65
+    NORMAL_RY = 45
     NORMAL_FOV = 90
 
     # ズーム時カメラ（接近・パースあり）
@@ -198,10 +199,11 @@ class TileZoomAnimation(Animation):
         if self.flat_mode:
             return (self.FLAT_NORMAL_RX, 0, 0)
         if not self.active:
-            return (self.NORMAL_RX, 0, 0)
+            return (self.NORMAL_RX, self.NORMAL_RY, 0)
         t = self._eased_progress
         rx = self._lerp(self.NORMAL_RX, self.ZOOM_RX, t)
-        return (rx, 0, 0)
+        ry = self._lerp(self.NORMAL_RY, 0, t)  # ズーム時はrot_y=0に戻す
+        return (rx, ry, 0)
 
     @property
     def fov(self):

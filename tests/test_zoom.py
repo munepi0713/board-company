@@ -50,7 +50,7 @@ def test_default_camera_returns_normal_position():
     pos = z.camera_pos
     rot = z.camera_rot
     assert pos == (z.NORMAL_X, z.NORMAL_Y, z.NORMAL_Z), f"got {pos}"
-    assert rot == (z.NORMAL_RX, 0, 0), f"got {rot}"
+    assert rot == (z.NORMAL_RX, z.NORMAL_RY, 0), f"got {rot}"
     assert z.fov == 90
 
 
@@ -124,12 +124,13 @@ def test_zoom_out_z_monotonically_increases():
 
 
 def test_rotation_only_changes_x():
-    """カメラ回転はX軸のみ変化し、Y/Zは常に0"""
+    """カメラ回転はX/Y軸が変化し、Zは常に0（rot_y=45→0に補間）"""
     z = TileZoomAnimation()
     z.start_zoom_in(50, 50)
     for _ in range(z.ZOOM_IN_DURATION + 5):
         rx, ry, rz = z.camera_rot
-        assert ry == 0 and rz == 0, f"Y/Z rotation changed: ry={ry}, rz={rz}"
+        assert rz == 0, f"Z rotation changed: rz={rz}"
+        assert 0 <= ry <= z.NORMAL_RY, f"ry out of range: {ry}"
         assert z.ZOOM_RX <= rx <= z.NORMAL_RX, f"rx out of range: {rx}"
         z.update()
 
@@ -158,7 +159,7 @@ def test_finish_zoom_resets_to_normal():
 
     assert not z.active
     assert z.camera_pos == (z.NORMAL_X, z.NORMAL_Y, z.NORMAL_Z)
-    assert z.camera_rot == (z.NORMAL_RX, 0, 0)
+    assert z.camera_rot == (z.NORMAL_RX, z.NORMAL_RY, 0)
 
 
 def test_on_complete_callback_fires():
