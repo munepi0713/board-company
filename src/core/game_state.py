@@ -48,6 +48,8 @@ class GameState:
         self.news_content: str = ""
         self.sponsor_names: list = []
         self.all_player_done: bool = False
+        self.news_done: bool = False  # ニュース済みフラグ（同一ターン再表示防止）
+        self.news_snapshot: dict = {}  # 前回ニュース時のスナップショット
 
     @property
     def current_player(self) -> Player:
@@ -166,6 +168,7 @@ class GameState:
         self.turn_number += 1
         self.current_player_index = 0
         self.all_player_done = False
+        self.news_done = False
         while self.current_player.is_bankrupt and self.current_player_index < len(self.players) - 1:
             self.current_player_index += 1
 
@@ -174,6 +177,32 @@ class GameState:
 
     def is_even_turn(self) -> bool:
         return self.turn_number % 2 == 0
+
+    def take_news_snapshot(self):
+        """現在のゲーム状態をスナップショットとして保存"""
+        snapshot = {
+            "turn": self.turn_number,
+            "players": {},
+            "land_prices": {},
+            "companies": {},
+        }
+        for p in self.players:
+            snapshot["players"][p.id] = {
+                "money": p.money,
+                "assets": self.get_player_total_assets(p),
+                "land_count": len(p.owned_land_ids),
+                "company_count": len(p.owned_company_ids),
+            }
+        for tile in self.board.tiles:
+            if tile.tile_type == "normal":
+                snapshot["land_prices"][tile.id] = tile.land_price
+            if tile.company:
+                snapshot["companies"][tile.id] = {
+                    "name": tile.company.name,
+                    "owner_id": tile.company.owner_id,
+                    "employees": tile.company.employees,
+                }
+        self.news_snapshot = snapshot
 
     def _get_player_by_id(self, player_id: int):
         for p in self.players:

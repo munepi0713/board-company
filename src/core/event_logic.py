@@ -105,6 +105,79 @@ def get_news_content(events: list) -> str:
     return random.choice(NEWS_TEMPLATES)
 
 
+def generate_cumulative_news(game_state) -> str:
+    """前回ニュースからの総合的な変化を報道するニュース文を生成"""
+    snapshot = game_state.news_snapshot
+    if not snapshot:
+        return random.choice(NEWS_TEMPLATES)
+
+    lines = []
+
+    # プレイヤー資産変化
+    asset_changes = []
+    for p in game_state.players:
+        if p.is_bankrupt:
+            continue
+        prev = snapshot.get("players", {}).get(p.id)
+        if not prev:
+            continue
+        current_assets = game_state.get_player_total_assets(p)
+        prev_assets = prev["assets"]
+        diff = current_assets - prev_assets
+        if diff > 0:
+            asset_changes.append(f"{p.name}+{diff}$")
+        elif diff < 0:
+            asset_changes.append(f"{p.name}{diff}$")
+
+    if asset_changes:
+        lines.append("資産変動: " + "、".join(asset_changes) + "。")
+
+    # 地価変動まとめ
+    up_count = 0
+    down_count = 0
+    prev_prices = snapshot.get("land_prices", {})
+    for tile in game_state.board.tiles:
+        if tile.tile_type != "normal":
+            continue
+        prev_price = prev_prices.get(tile.id)
+        if prev_price is not None:
+            if tile.land_price > prev_price:
+                up_count += 1
+            elif tile.land_price < prev_price:
+                down_count += 1
+    if up_count > 0 or down_count > 0:
+        parts = []
+        if up_count > 0:
+            parts.append(f"{up_count}地区で上昇")
+        if down_count > 0:
+            parts.append(f"{down_count}地区で下落")
+        lines.append("地価が" + "、".join(parts) + "。")
+
+    # 新規会社
+    prev_companies = snapshot.get("companies", {})
+    new_companies = []
+    for tile in game_state.board.tiles:
+        if tile.company and tile.id not in prev_companies:
+            new_companies.append(tile.company.name)
+    if new_companies:
+        lines.append("新会社: " + "、".join(new_companies[:3]) + "設立。")
+
+    # ランキング
+    ranked = sorted(
+        [p for p in game_state.players if not p.is_bankrupt],
+        key=lambda p: game_state.get_player_total_assets(p),
+        reverse=True,
+    )
+    if ranked:
+        leader = ranked[0]
+        assets = game_state.get_player_total_assets(leader)
+        lines.append(f"首位は{leader.name}({assets}$)。")
+
+    if not lines:
+        return random.choice(NEWS_TEMPLATES)
+    return " ".join(lines)
+
+
 def get_sponsors(game_state, count: int = 2) -> list:
     """スポンサーを選択"""
     companies = []

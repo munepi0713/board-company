@@ -4,7 +4,7 @@ from src.scenes.scene_base import Scene
 from src.ui.input_helper import btnp
 from src.ui.font import draw_text
 from src.core.rules import SCREEN_WIDTH, SCREEN_HEIGHT
-from src.core.event_logic import check_events, apply_event, get_news_content, get_sponsors
+from src.core.event_logic import generate_cumulative_news, get_sponsors
 
 
 class NewsScene(Scene):
@@ -28,23 +28,20 @@ class NewsScene(Scene):
         if hasattr(self, '_text_done_frame'):
             del self._text_done_frame
 
-        # イベント処理
-        events = check_events(self.game_state.turn_number)
-        messages = []
-        for event in events:
-            msg = apply_event(event, self.game_state)
-            messages.append(msg)
-
-        self.news_text = get_news_content(events)
-        if messages:
-            self.news_text = " ".join(messages)
-        self.sponsors = get_sponsors(self.game_state)
+        # 前回ニュースからの総合変化を報道
+        # （イベント適用は main_board._start_turn() で実施済み）
+        self.news_text = generate_cumulative_news(self.game_state)
 
         # 偶数ターン損益
         if self.game_state.is_even_turn():
             results = self.game_state.process_even_turn_revenue()
             if results:
                 self.news_text += " " + " ".join(results)
+
+        self.sponsors = get_sponsors(self.game_state)
+
+        # スナップショットを更新（次回ニュースとの比較用）
+        self.game_state.take_news_snapshot()
 
         self.phase = "sponsor"
 
