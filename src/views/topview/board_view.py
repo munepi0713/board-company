@@ -3,6 +3,7 @@ import pyxel
 from src.views.view_base import BoardViewBase
 from src.ui.font import draw_text
 from src.core.rules import TILE_SIZE
+from src.views.billboard import draw_building_billboard, draw_player_billboard
 
 # イメージバンクサイズ
 IMG_SIZE = 256
@@ -133,11 +134,17 @@ class TopViewBoardView(BoardViewBase):
             border = TILE_OWNED_BORDER if tile.is_owned else TILE_BORDER_COLOR
             img.rectb(sx, sy, OFF_TILE, OFF_TILE, border)
 
+            # 建物ビルボード描画
             if tile.has_company:
-                bx = sx + 2
-                by = sy + 2
-                img.rect(bx, by, 6, 8, 7)
-                img.rect(bx + 1, by + 4, 4, 4, 0)
+                owner_color = 7
+                if players:
+                    for p in players:
+                        if p.id == tile.company.owner_id:
+                            owner_color = p.color
+                            break
+                bcx = sx + OFF_TILE // 2
+                bcy = sy + OFF_TILE // 2
+                draw_building_billboard(img, bcx, bcy, owner_color)
 
             tcx = sx + OFF_TILE // 2 - 2
             tcy = sy + OFF_TILE // 2 - 2
@@ -150,22 +157,20 @@ class TopViewBoardView(BoardViewBase):
             elif tile.tile_type == "card":
                 img.text(tcx, tcy, "C", 7)
 
-        # プレイヤー
+        # プレイヤービルボード描画
         if players:
             tile_counts = {}
             for p in players:
                 if p.is_bankrupt:
                     continue
-                # 移動アニメーション中のプレイヤーは補間位置に描画
                 if move_info and p.id == move_info["player_id"]:
                     fx, fy = self.tile_image_pos(move_info["from_tile"])
                     tx, ty = self.tile_image_pos(move_info["to_tile"])
                     prog = move_info["progress"]
                     px = int(fx + (tx - fx) * prog)
                     py = int(fy + (ty - fy) * prog)
-                    img.circ(px, py, 2, p.color)
+                    draw_player_billboard(img, px, py, p.color, p.id)
                     continue
-                # 通常: タイル位置に描画
                 tid = p.position
                 if tid not in tile_counts:
                     tile_counts[tid] = 0
@@ -173,7 +178,7 @@ class TopViewBoardView(BoardViewBase):
                 tile_counts[tid] += 1
                 tx, ty = self.tile_image_pos(tid)
                 dx, dy = _PLAYER_IMG_OFFSETS[idx % len(_PLAYER_IMG_OFFSETS)]
-                img.circ(tx + dx, ty + dy, 2, p.color)
+                draw_player_billboard(img, tx + dx, ty + dy, p.color, p.id)
 
     def draw_tile_info(self, tile, x, y):
         """マス情報のツールチップ描画"""
