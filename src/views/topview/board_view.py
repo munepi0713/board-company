@@ -3,7 +3,6 @@ import pyxel
 from src.views.view_base import BoardViewBase
 from src.ui.font import draw_text
 from src.core.rules import TILE_SIZE
-from src.views.billboard import draw_building_billboard, draw_player_billboard
 
 # イメージバンクサイズ
 IMG_SIZE = 256
@@ -134,17 +133,9 @@ class TopViewBoardView(BoardViewBase):
             border = TILE_OWNED_BORDER if tile.is_owned else TILE_BORDER_COLOR
             img.rectb(sx, sy, OFF_TILE, OFF_TILE, border)
 
-            # 建物ビルボード描画
+            # 建物マーカー（小さいドットのみ、ビルボードはスクリーン上に描画）
             if tile.has_company:
-                owner_color = 7
-                if players:
-                    for p in players:
-                        if p.id == tile.company.owner_id:
-                            owner_color = p.color
-                            break
-                bcx = sx + OFF_TILE // 2
-                bcy = sy + OFF_TILE // 2
-                draw_building_billboard(img, bcx, bcy, owner_color)
+                img.pset(sx + OFF_TILE // 2, sy + OFF_TILE // 2, 7)
 
             tcx = sx + OFF_TILE // 2 - 2
             tcy = sy + OFF_TILE // 2 - 2
@@ -157,7 +148,7 @@ class TopViewBoardView(BoardViewBase):
             elif tile.tile_type == "card":
                 img.text(tcx, tcy, "C", 7)
 
-        # プレイヤービルボード描画
+        # プレイヤーマーカー（小さいドットのみ、ビルボードはスクリーン上に描画）
         if players:
             tile_counts = {}
             for p in players:
@@ -169,7 +160,7 @@ class TopViewBoardView(BoardViewBase):
                     prog = move_info["progress"]
                     px = int(fx + (tx - fx) * prog)
                     py = int(fy + (ty - fy) * prog)
-                    draw_player_billboard(img, px, py, p.color, p.id)
+                    img.pset(px, py, p.color)
                     continue
                 tid = p.position
                 if tid not in tile_counts:
@@ -178,7 +169,7 @@ class TopViewBoardView(BoardViewBase):
                 tile_counts[tid] += 1
                 tx, ty = self.tile_image_pos(tid)
                 dx, dy = _PLAYER_IMG_OFFSETS[idx % len(_PLAYER_IMG_OFFSETS)]
-                draw_player_billboard(img, tx + dx, ty + dy, p.color, p.id)
+                img.pset(tx + dx, ty + dy, p.color)
 
     def draw_tile_info(self, tile, x, y):
         """マス情報のツールチップ描画"""

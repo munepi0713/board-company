@@ -11,6 +11,8 @@ from src.core.card_logic import get_random_card, get_shop_cards, get_normal_card
 from src.core.event_logic import check_events, apply_event
 from src.core.ai import AIPlayer
 from src.views.view_base import ViewManager
+from src.views.projection import project_to_screen
+from src.views.billboard import draw_building_on_screen, draw_player_on_screen
 from src.ui.dialog import Dialog, ConfirmDialog
 from src.ui.menu import Menu
 from src.ui.hud import HUD
@@ -704,6 +706,10 @@ class MainBoardScene(Scene):
         pyxel.blt3d(0, vp_y, SCREEN_WIDTH, vp_h,
                     self.zoom_image_idx, pos, rot, fov=fov)
 
+        # スクリーン上にビルボード描画（ズーム中は非表示）
+        if not self.tile_zoom.active:
+            self._draw_billboards(gs, is_iso, move_info)
+
         # プレイヤー所持金
         self.hud.draw_player_money(gs.players, gs, y=440)
 
@@ -725,6 +731,74 @@ class MainBoardScene(Scene):
             pyxel.rect(160, 240, 200, 24, 1)
             pyxel.rectb(160, 240, 200, 24, 7)
             draw_text(176, 248, f"{player.name} 思考中...", 7)
+
+    def _draw_billboards(self, gs, is_iso, move_info):
+        """blt3d描画後にスクリーン上にビルボードを描画する"""
+        board = gs.board
+        bv = self.view_manager.board_view
+
+        # 全タイルの投影位置を計算し、奥から手前の順に描画（Zソート）
+        draw_list = []
+
+        for tile in board.tiles:
+            ix, iy = bv.tile_image_pos(tile.id)
+            result = project_to_screen(ix, iy, is_iso)
+            if result is None:
+                continue
+            sx, sy, scale = result
+            if sx < -50 or sx > SCREEN_WIDTH + 50 or sy < -50 or sy > SCREEN_HEIGHT + 50:
+                continue
+            draw_list.append((sy, tile.id, ix, iy, sx, sy, scale))
+
+        # 奥（screen_y小）から手前（screen_y大）の順に描画
+        draw_list.sort(key=lambda e: e[0])
+
+        # 建物ビルボード
+        for _, tile_id, ix, iy, sx, sy, scale in draw_list:
+            tile = board.get_tile(tile_id)
+            if tile.has_company:
+                owner_color = 7
+                for p in gs.active_players:
+                    if p.id == tile.company.owner_id:
+                        owner_color = p.color
+                        break
+                draw_building_on_screen(sx, sy, scale, owner_color)
+
+        # プレイヤービルボード
+        player_draws = []
+        tile_counts = {}
+        offsets = [(-8, 0), (8, 0), (-8, 0), (8, 0)]
+        for p in gs.active_players:
+            if p.is_bankrupt:
+                continue
+            if move_info and p.id == move_info["player_id"]:
+                fix, fiy = bv.tile_image_pos(move_info["from_tile"])
+                tix, tiy = bv.tile_image_pos(move_info["to_tile"])
+                prog = move_info["progress"]
+                mix = fix + (tix - fix) * prog
+                miy = fiy + (tiy - fiy) * prog
+                result = project_to_screen(mix, miy, is_iso)
+                if result:
+                    player_draws.append((result[1], p, result[0], result[1], result[2]))
+                continue
+            tid = p.position
+            if tid not in tile_counts:
+                tile_counts[tid] = 0
+            idx = tile_counts[tid]
+            tile_counts[tid] += 1
+            ix, iy = bv.tile_image_pos(tid)
+            result = project_to_screen(ix, iy, is_iso)
+            if result is None:
+                continue
+            sx, sy, scale = result
+            # 同一マス上のプレイヤーを横にずらす
+            dx = offsets[idx % len(offsets)][0] * scale
+            player_draws.append((sy, p, sx + dx, sy, scale))
+
+        player_draws.sort(key=lambda e: e[0])
+        for _, p, sx, sy, scale in player_draws:
+            if -50 < sx < SCREEN_WIDTH + 50 and -50 < sy < SCREEN_HEIGHT + 50:
+                draw_player_on_screen(sx, sy, scale, p.color, p.id)
 
     def _draw_dice(self):
         # サイコロ表示

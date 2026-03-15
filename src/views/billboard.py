@@ -1,117 +1,124 @@
-"""ビルボード描画 — オフスクリーンイメージ上に立体的なスプライトを描画する
+"""ビルボード描画 — スクリーン上に垂直に立つスプライトを描画する
 
-blt3dの透視投影により、イメージ上で-Y方向に伸びるスプライトは
-カメラから見て「立ち上がって」見える。
+blt3dで投影されたボード上に、パースなしで垂直に立つ
+ビルボードスプライトを描画する。
 """
 
-import math
+import pyxel
 
 
-def draw_building_billboard(img, cx, cy, owner_color, height=55):
-    """建物ビルボードをイメージバンクに描画する
+def draw_building_on_screen(cx, cy, scale, owner_color):
+    """建物ビルボードをスクリーンに描画する
 
-    img: Pyxelイメージバンク
-    cx, cy: タイル中心のイメージ座標
+    cx, cy: 建物の足元スクリーン座標
+    scale: 距離に応じたスケール (1.0=基準サイズ)
     owner_color: オーナーのカラーインデックス
-    height: 建物の高さ (ピクセル)
     """
-    w = 18
-    h = height
+    s = max(0.3, min(scale, 2.5))
+    w = int(16 * s)
+    h = int(48 * s)
+    if w < 4 or h < 6:
+        return
 
-    # 建物は上方向 (-Y) に伸びる
     bx = cx - w // 2
-    by = cy - h
+    by = int(cy - h)
 
-    # 建物本体（明るい灰色）
-    img.rect(bx, by, w, h, 6)
-    # 側面の影 (右端3列を暗くする)
-    img.rect(bx + w - 3, by, 3, h, 5)
+    # 建物本体
+    pyxel.rect(bx, by, w, h, 6)
+    # 側面の影
+    shadow_w = max(int(3 * s), 1)
+    pyxel.rect(bx + w - shadow_w, by, shadow_w, h, 5)
 
-    # 屋根 (三角形、大きめ)
-    roof_h = 7
+    # 屋根（三角形）
+    roof_h = max(int(6 * s), 2)
     for row in range(roof_h):
-        x0 = bx + row
-        x1 = bx + w - 1 - row
-        if x0 <= x1:
-            img.line(x0, by - roof_h + row, x1, by - roof_h + row, owner_color)
+        rx0 = bx + (row * w) // (roof_h * 2)
+        rx1 = bx + w - 1 - (row * w) // (roof_h * 2)
+        if rx0 <= rx1:
+            pyxel.line(rx0, by - roof_h + row, rx1, by - roof_h + row, owner_color)
 
-    # 窓 (複数行、2列)
-    win_w = 4
-    win_h = 4
-    win_gap_y = 7
-    win_margin_x = 2
+    # 窓
+    win_w = max(int(3 * s), 2)
+    win_h = max(int(3 * s), 2)
+    win_gap = max(int(7 * s), 4)
+    margin_x = max(int(2 * s), 1)
     for row in range(6):
-        wy = by + 5 + row * win_gap_y
-        if wy + win_h >= cy - 5:
+        wy = by + max(int(4 * s), 2) + row * win_gap
+        if wy + win_h >= int(cy) - max(int(4 * s), 2):
             break
-        # 左窓
-        img.rect(bx + win_margin_x, wy, win_w, win_h, 12)
-        # 右窓
-        img.rect(bx + w - win_margin_x - win_w, wy, win_w, win_h, 12)
+        pyxel.rect(bx + margin_x, wy, win_w, win_h, 12)
+        rx = bx + w - margin_x - win_w
+        if rx > bx + margin_x + win_w:
+            pyxel.rect(rx, wy, win_w, win_h, 12)
 
     # ドア
-    door_w = 6
-    door_h = 7
-    door_y = cy - door_h
-    if door_y > by + 10:
+    door_w = max(int(5 * s), 2)
+    door_h = max(int(6 * s), 3)
+    door_y = int(cy) - door_h
+    if door_y > by + int(8 * s):
         dx = cx - door_w // 2
-        img.rect(dx, door_y, door_w, door_h, 1)
-        # ドアノブ
-        img.pset(dx + door_w - 1, door_y + door_h // 2, 10)
+        pyxel.rect(dx, door_y, door_w, door_h, 1)
 
-    # 輪郭（太め）
-    img.rectb(bx, by, w, h, 0)
-    # オーナー色のライン（建物上部）
-    img.line(bx, by, bx + w - 1, by, owner_color)
+    # 輪郭
+    pyxel.rectb(bx, by, w, h, 0)
+    # オーナー色ライン
+    pyxel.line(bx, by, bx + w - 1, by, owner_color)
 
 
-def draw_player_billboard(img, cx, cy, color, player_id, height=32):
-    """プレイヤービルボードをイメージバンクに描画する
+def draw_player_on_screen(cx, cy, scale, color, player_id):
+    """プレイヤービルボードをスクリーンに描画する
 
-    img: Pyxelイメージバンク
-    cx, cy: プレイヤーの足元イメージ座標
+    cx, cy: プレイヤーの足元スクリーン座標
+    scale: 距離に応じたスケール
     color: プレイヤーカラー
     player_id: プレイヤー番号
-    height: キャラクターの高さ (ピクセル)
     """
-    h = height
-    head_r = 5
-    body_w = 10
-    body_h = h - head_r * 2 - 3
+    s = max(0.3, min(scale, 2.5))
+    h = int(36 * s)
+    head_r = max(int(5 * s), 2)
+    body_w = max(int(10 * s), 4)
+    body_h = h - head_r * 2 - max(int(2 * s), 1)
+    if body_h < 4:
+        return
 
-    # 足元から上方向 (-Y) に配置
+    cx = int(cx)
+    cy = int(cy)
+
+    # 足元から上方向
     body_top = cy - body_h
     head_cy = body_top - head_r - 1
 
-    # 足 (2本、太め)
-    leg_h = max(body_h // 3, 3)
-    leg_w = 3
-    img.rect(cx - 4, cy - leg_h, leg_w, leg_h, color)
-    img.rect(cx + 1, cy - leg_h, leg_w, leg_h, color)
+    # 足
+    leg_h = max(body_h // 3, 2)
+    leg_w = max(int(3 * s), 1)
+    pyxel.rect(cx - leg_w - 1, cy - leg_h, leg_w, leg_h, color)
+    pyxel.rect(cx + 1, cy - leg_h, leg_w, leg_h, color)
 
-    # 体（太め）
+    # 体
     shirt_top = cy - leg_h - (body_h - leg_h)
     shirt_h = body_h - leg_h
-    img.rect(cx - body_w // 2, shirt_top, body_w, shirt_h, color)
+    pyxel.rect(cx - body_w // 2, shirt_top, body_w, shirt_h, color)
 
-    # 腕 (両サイド、太め)
-    arm_h = max(shirt_h - 2, 3)
-    img.rect(cx - body_w // 2 - 3, shirt_top + 1, 3, arm_h, color)
-    img.rect(cx + body_w // 2, shirt_top + 1, 3, arm_h, color)
+    # 腕
+    arm_w = max(int(3 * s), 1)
+    arm_h = max(shirt_h - 2, 2)
+    pyxel.rect(cx - body_w // 2 - arm_w, shirt_top + 1, arm_w, arm_h, color)
+    pyxel.rect(cx + body_w // 2, shirt_top + 1, arm_w, arm_h, color)
 
-    # 頭（大きめ）
-    img.circ(cx, head_cy, head_r, 7)
-    img.circb(cx, head_cy, head_r, 0)
+    # 頭
+    pyxel.circ(cx, head_cy, head_r, 7)
+    pyxel.circb(cx, head_cy, head_r, 0)
 
-    # 髪 (頭の上半分)
+    # 髪（頭の上半分）
+    import math
     for dy in range(-head_r, -1):
         hw = head_r * head_r - dy * dy
         if hw > 0:
             half_w = int(math.sqrt(hw))
-            img.line(cx - half_w, head_cy + dy, cx + half_w, head_cy + dy, color)
+            pyxel.line(cx - half_w, head_cy + dy, cx + half_w, head_cy + dy, color)
 
-    # プレイヤー番号 (体の中央、大きめ)
-    img.text(cx - 2, shirt_top + 2, str(player_id), 7)
+    # プレイヤー番号
+    pyxel.text(cx - 2, shirt_top + max(int(2 * s), 1), str(player_id), 7)
 
-    # 輪郭（体全体）
-    img.rectb(cx - body_w // 2, shirt_top, body_w, body_h, 0)
+    # 体の輪郭
+    pyxel.rectb(cx - body_w // 2, shirt_top, body_w, body_h, 0)
