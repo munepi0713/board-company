@@ -688,13 +688,20 @@ class MainBoardScene(Scene):
 
         # オフスクリーン描画 → blt3d でスクリーンに転送
         img = pyxel.images[self.zoom_image_idx]
+        is_iso = self.view_manager.view_type == "isometric"
+        # 共通パイプライン: TopView描画 → カメラパラメータで見た目を切替
+        # アイソメトリック: rot_y=45 パース付き（Mode 7風ダイヤモンド）
+        # トップビュー: flat_mode（真上からのカメラ）
+        self.tile_zoom.flat_mode = not is_iso
         self.view_manager.board_view.draw_board_to_image(
             img, gs.active_players, move_info
         )
         pos = self.tile_zoom.camera_pos
         rot = self.tile_zoom.camera_rot
         fov = self.tile_zoom.fov
-        pyxel.blt3d(0, 16, SCREEN_WIDTH, 420,
+        vp_y = -160 if is_iso else 16
+        vp_h = 580 if is_iso else 420
+        pyxel.blt3d(0, vp_y, SCREEN_WIDTH, vp_h,
                     self.zoom_image_idx, pos, rot, fov=fov)
 
         # プレイヤー所持金

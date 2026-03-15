@@ -42,32 +42,28 @@ class PlayerViewBase(ABC):
 
 
 class ViewManager:
-    """ビューの切り替えを管理（ボード層＋プレイヤー層のみ）"""
+    """ビューの切り替えを管理
+
+    描画は常にTopViewBoardViewを使用し、
+    カメラパラメータ（rot_y=45等）でアイソメトリック風に見せる。
+    """
 
     def __init__(self, board_model):
         from src.views.topview.board_view import TopViewBoardView
         from src.views.topview.player_view import TopViewPlayerView
-        from src.views.isometric.board_view import IsometricBoardView
-        from src.views.isometric.player_view import IsometricPlayerView
 
         self.board_model = board_model
         self.view_type = "isometric"
-        self._board_views = {
-            "topview": TopViewBoardView(board_model),
-            "isometric": IsometricBoardView(board_model),
-        }
-        self._player_views = {
-            "topview": TopViewPlayerView(),
-            "isometric": IsometricPlayerView(),
-        }
+        self._board_view = TopViewBoardView(board_model)
+        self._player_view = TopViewPlayerView()
 
     @property
     def board_view(self):
-        return self._board_views[self.view_type]
+        return self._board_view
 
     @property
     def player_view(self):
-        return self._player_views[self.view_type]
+        return self._player_view
 
     def toggle_view(self):
         """トップビュー⇔アイソメトリックを切り替え"""
