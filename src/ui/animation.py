@@ -123,6 +123,11 @@ class TileZoomAnimation(Animation):
     FLAT_ZOOM_Y_OFFSET = 10
     FLAT_ZOOM_RX = 70
 
+    # 視線追従パラメータ
+    FOLLOW_SPEED = 0.08  # 追従の補間速度（0〜1、大きいほど速い）
+    FOLLOW_FACTOR_PERSPECTIVE = 0.3  # パースモードでの追従係数
+    FOLLOW_FACTOR_FLAT = 0.5  # フラットモードでの追従係数
+
     def __init__(self):
         super().__init__(duration=20)
         self.active = False
@@ -131,6 +136,21 @@ class TileZoomAnimation(Animation):
         self.target_x = self.IMG_CENTER
         self.target_y = self.IMG_CENTER
         self.flat_mode = False
+        # 視線追従用
+        self._follow_x = self.IMG_CENTER
+        self._follow_y = self.IMG_CENTER
+        self._current_follow_x = float(self.IMG_CENTER)
+        self._current_follow_y = float(self.IMG_CENTER)
+
+    def set_follow_target(self, target_x, target_y):
+        """視線追従のターゲット位置を設定する（イメージ座標）"""
+        self._follow_x = target_x
+        self._follow_y = target_y
+
+    def update_follow(self):
+        """視線追従の補間を更新する（毎フレーム呼ぶ）"""
+        self._current_follow_x += (self._follow_x - self._current_follow_x) * self.FOLLOW_SPEED
+        self._current_follow_y += (self._follow_y - self._current_follow_y) * self.FOLLOW_SPEED
 
     def start_zoom_in(self, target_x, target_y, on_complete=None):
         self.target_x = target_x
@@ -173,24 +193,39 @@ class TileZoomAnimation(Animation):
         return self._camera_pos_perspective
 
     @property
+    def _follow_offset(self):
+        """現在の追従オフセット（イメージ中心からの差分）"""
+        dx = self._current_follow_x - self.IMG_CENTER
+        dy = self._current_follow_y - self.IMG_CENTER
+        return (dx, dy)
+
+    @property
     def _camera_pos_perspective(self):
+        dx, dy = self._follow_offset
+        f = self.FOLLOW_FACTOR_PERSPECTIVE
+        base_x = self.NORMAL_X + dx * f
+        base_y = self.NORMAL_Y + dy * f
         if not self.active:
-            return (self.NORMAL_X, self.NORMAL_Y, self.NORMAL_Z)
+            return (base_x, base_y, self.NORMAL_Z)
         t = self._eased_progress
         zoom_y = self.target_y + self.ZOOM_Y_OFFSET
-        cx = self._lerp(self.NORMAL_X, self.target_x, t)
-        cy = self._lerp(self.NORMAL_Y, zoom_y, t)
+        cx = self._lerp(base_x, self.target_x, t)
+        cy = self._lerp(base_y, zoom_y, t)
         cz = self._lerp(self.NORMAL_Z, self.ZOOM_Z, t)
         return (cx, cy, cz)
 
     @property
     def _camera_pos_flat(self):
+        dx, dy = self._follow_offset
+        f = self.FOLLOW_FACTOR_FLAT
+        base_x = self.FLAT_NORMAL_X + dx * f
+        base_y = self.FLAT_NORMAL_Y + dy * f
         if not self.active:
-            return (self.FLAT_NORMAL_X, self.FLAT_NORMAL_Y, self.FLAT_NORMAL_Z)
+            return (base_x, base_y, self.FLAT_NORMAL_Z)
         t = self._eased_progress
         zoom_y = self.target_y + self.FLAT_ZOOM_Y_OFFSET
-        cx = self._lerp(self.FLAT_NORMAL_X, self.target_x, t)
-        cy = self._lerp(self.FLAT_NORMAL_Y, zoom_y, t)
+        cx = self._lerp(base_x, self.target_x, t)
+        cy = self._lerp(base_y, zoom_y, t)
         cz = self._lerp(self.FLAT_NORMAL_Z, self.FLAT_ZOOM_Z, t)
         return (cx, cy, cz)
 

@@ -169,6 +169,9 @@ class MainBoardScene(Scene):
         self.move_anim.update()
         self.tile_zoom.update()
 
+        # 視線追従: 現在プレイヤーの位置にカメラを追従させる
+        self._update_camera_follow()
+
         # ズームアニメーション中
         if self.sub_phase == SubPhase.TILE_ZOOM_IN:
             return
@@ -222,6 +225,30 @@ class MainBoardScene(Scene):
         # 分岐選択
         if self.sub_phase == SubPhase.BRANCH:
             return  # メニューで処理
+
+    def _update_camera_follow(self):
+        """現在のプレイヤー位置にカメラを追従させる"""
+        gs = self.game_state
+        if gs is None or self.view_manager is None:
+            return
+        player = gs.current_player
+        bv = self.view_manager.board_view
+
+        # 移動アニメーション中は補間位置を追従
+        if (self.sub_phase == SubPhase.MOVE_ANIM
+                and self.move_from_tile is not None
+                and self.move_to_tile is not None):
+            fix, fiy = bv.tile_image_pos(self.move_from_tile)
+            tix, tiy = bv.tile_image_pos(self.move_to_tile)
+            prog = self.move_anim.progress
+            tx = fix + (tix - fix) * prog
+            ty = fiy + (tiy - fiy) * prog
+            self.tile_zoom.set_follow_target(tx, ty)
+        else:
+            tx, ty = bv.tile_image_pos(player.position)
+            self.tile_zoom.set_follow_target(tx, ty)
+
+        self.tile_zoom.update_follow()
 
     def _execute_command(self, cmd_index):
         if cmd_index == 0:  # サイコロ
