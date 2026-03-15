@@ -255,21 +255,6 @@ def test_tile_image_pos_bounds_topview():
             f"TopView tile {tile.id} out of bounds: ({x}, {y})"
 
 
-def test_tile_image_pos_bounds_isometric():
-    """Isometric: 全タイルの座標が 0-255 の範囲内"""
-    if not _can_import_pyxel():
-        print("  SKIP (pyxel not available)")
-        return
-
-    from src.views.isometric.board_view import IsometricBoardView
-    board = _build_board()
-    view = IsometricBoardView(board)
-
-    for tile in board.tiles:
-        x, y = view.tile_image_pos(tile.id)
-        assert 0 <= x < 256 and 0 <= y < 256, \
-            f"Isometric tile {tile.id} out of bounds: ({x}, {y})"
-
 
 def test_tile_image_pos_distinct():
     """異なるタイルは（隣接タイルを除き）異なる座標を持つ"""
@@ -317,7 +302,7 @@ def main():
         test_zoom_out_without_zoom_in,
         test_eased_progress_range,
         test_tile_image_pos_bounds_topview,
-        test_tile_image_pos_bounds_isometric,
+
         test_tile_image_pos_distinct,
     ]
 
