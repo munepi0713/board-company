@@ -703,7 +703,9 @@ class MainBoardScene(Scene):
         pos = self.tile_zoom.camera_pos
         rot = self.tile_zoom.camera_rot
         fov = self.tile_zoom.fov
-        pyxel.blt3d(0, 16, SCREEN_WIDTH, 420,
+        vp_y = -160 if not is_iso else 16
+        vp_h = 580 if not is_iso else 420
+        pyxel.blt3d(0, vp_y, SCREEN_WIDTH, vp_h,
                     self.zoom_image_idx, pos, rot, fov=fov)
 
         # プレイヤー所持金

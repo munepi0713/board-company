@@ -51,7 +51,7 @@ def test_default_camera_returns_normal_position():
     rot = z.camera_rot
     assert pos == (z.NORMAL_X, z.NORMAL_Y, z.NORMAL_Z), f"got {pos}"
     assert rot == (z.NORMAL_RX, z.NORMAL_RY, 0), f"got {rot}"
-    assert z.fov == 90
+    assert z.fov == z.NORMAL_FOV
 
 
 def test_zoom_in_start_and_end_positions():

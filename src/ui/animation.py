@@ -99,12 +99,12 @@ class TileZoomAnimation(Animation):
     IMG_CENTER = 128  # イメージバンク中心
 
     # 通常時カメラ（俯瞰・パースあり、rot_y=45でダイヤモンド表示）
-    NORMAL_X = 55
-    NORMAL_Y = 210
-    NORMAL_Z = 130
-    NORMAL_RX = 65
+    NORMAL_X = 57
+    NORMAL_Y = 199
+    NORMAL_Z = 150
+    NORMAL_RX = 62
     NORMAL_RY = 45
-    NORMAL_FOV = 90
+    NORMAL_FOV = 40
 
     # ズーム時カメラ（接近・パースあり）
     ZOOM_Z = 25
