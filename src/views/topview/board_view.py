@@ -28,7 +28,7 @@ TILE_OWNED_BORDER = 8  # 赤
 ROAD_COLOR = 13        # 灰色
 
 # 同一マス上のプレイヤー表示オフセット（イメージバンク用）
-_PLAYER_IMG_OFFSETS = [(-4, -4), (4, -4), (-4, 4), (4, 4)]
+_PLAYER_IMG_OFFSETS = [(-6, -2), (6, -2), (-6, 6), (6, 6)]
 
 
 class TopViewBoardView(BoardViewBase):
