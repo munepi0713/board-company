@@ -14,7 +14,7 @@ def draw_building_on_screen(cx, cy, scale, owner_color):
     scale: 距離に応じたスケール (1.0=基準サイズ)
     owner_color: オーナーのカラーインデックス
     """
-    s = max(0.3, min(scale, 2.5))
+    s = max(0.3, min(scale, 8.0))
     w = int(16 * s)
     h = int(48 * s)
     if w < 4 or h < 6:
@@ -73,7 +73,7 @@ def draw_player_on_screen(cx, cy, scale, color, player_id):
     color: プレイヤーカラー
     player_id: プレイヤー番号
     """
-    s = max(0.3, min(scale, 2.5))
+    s = max(0.3, min(scale, 8.0))
     h = int(36 * s)
     head_r = max(int(5 * s), 2)
     body_w = max(int(10 * s), 4)
