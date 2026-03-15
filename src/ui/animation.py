@@ -1,5 +1,4 @@
 """アニメーション管理"""
-import math
 
 
 class Animation:
@@ -193,73 +192,40 @@ class TileZoomAnimation(Animation):
             return self._camera_pos_flat
         return self._camera_pos_perspective
 
-    def _screen_parallel_offset(self, dx_img, dy_img):
-        """イメージ空間のオフセットをスクリーン平行面でのカメラ移動量に変換する。
-
-        カメラの回転角から right / up ベクトルを求め、イメージ平面上の
-        オフセットをスクリーン座標へ射影→カメラ移動量（x,y,z）へ逆変換する。
-        これによりカメラはスクリーンと平行な面上を移動し、姿勢は変化しない。
-        """
-        if self.flat_mode:
-            rx_rad = math.radians(self.FLAT_NORMAL_RX)
-            ry_rad = 0.0
-        else:
-            rx_rad = math.radians(self.NORMAL_RX)
-            ry_rad = math.radians(self.NORMAL_RY)
-
-        cos_ry = math.cos(ry_rad)
-        sin_ry = math.sin(ry_rad)
-        sin_rx = math.sin(rx_rad)
-        cos_rx = math.cos(rx_rad)
-
-        # スクリーン水平/垂直成分への射影
-        screen_h = dx_img * cos_ry - dy_img * sin_ry
-        screen_v = (dx_img * sin_ry + dy_img * cos_ry) * sin_rx
-
-        # カメラ移動量（イメージ空間 x, y, z）へ逆変換
-        cam_dx = screen_h * cos_ry + screen_v * sin_ry * sin_rx
-        cam_dy = -screen_h * sin_ry + screen_v * cos_ry * sin_rx
-        cam_dz = screen_v * cos_rx
-
-        return (cam_dx, cam_dy, cam_dz)
-
     @property
-    def _follow_offset_3d(self):
-        """スクリーン平行面での追従オフセット (dx, dy, dz)"""
-        dx_img = self._current_follow_x - self.IMG_CENTER
-        dy_img = self._current_follow_y - self.IMG_CENTER
+    def _follow_offset(self):
+        """マップ平面上での追従オフセット (dx, dy)。Zは不変。"""
         f = self.FOLLOW_FACTOR_FLAT if self.flat_mode else self.FOLLOW_FACTOR_PERSPECTIVE
-        ox, oy, oz = self._screen_parallel_offset(dx_img, dy_img)
-        return (ox * f, oy * f, oz * f)
+        dx = (self._current_follow_x - self.IMG_CENTER) * f
+        dy = (self._current_follow_y - self.IMG_CENTER) * f
+        return (dx, dy)
 
     @property
     def _camera_pos_perspective(self):
-        ox, oy, oz = self._follow_offset_3d
-        base_x = self.NORMAL_X + ox
-        base_y = self.NORMAL_Y + oy
-        base_z = self.NORMAL_Z + oz
+        dx, dy = self._follow_offset
+        base_x = self.NORMAL_X + dx
+        base_y = self.NORMAL_Y + dy
         if not self.active:
-            return (base_x, base_y, base_z)
+            return (base_x, base_y, self.NORMAL_Z)
         t = self._eased_progress
         zoom_y = self.target_y + self.ZOOM_Y_OFFSET
         cx = self._lerp(base_x, self.target_x, t)
         cy = self._lerp(base_y, zoom_y, t)
-        cz = self._lerp(base_z, self.ZOOM_Z, t)
+        cz = self._lerp(self.NORMAL_Z, self.ZOOM_Z, t)
         return (cx, cy, cz)
 
     @property
     def _camera_pos_flat(self):
-        ox, oy, oz = self._follow_offset_3d
-        base_x = self.FLAT_NORMAL_X + ox
-        base_y = self.FLAT_NORMAL_Y + oy
-        base_z = self.FLAT_NORMAL_Z + oz
+        dx, dy = self._follow_offset
+        base_x = self.FLAT_NORMAL_X + dx
+        base_y = self.FLAT_NORMAL_Y + dy
         if not self.active:
-            return (base_x, base_y, base_z)
+            return (base_x, base_y, self.FLAT_NORMAL_Z)
         t = self._eased_progress
         zoom_y = self.target_y + self.FLAT_ZOOM_Y_OFFSET
         cx = self._lerp(base_x, self.target_x, t)
         cy = self._lerp(base_y, zoom_y, t)
-        cz = self._lerp(base_z, self.FLAT_ZOOM_Z, t)
+        cz = self._lerp(self.FLAT_NORMAL_Z, self.FLAT_ZOOM_Z, t)
         return (cx, cy, cz)
 
     @property
