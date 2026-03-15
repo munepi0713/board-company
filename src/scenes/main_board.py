@@ -300,7 +300,11 @@ class MainBoardScene(Scene):
         tile = gs.board.get_tile(player.position)
 
         # ズームイン開始（対象マスへ）
-        tx, ty = self.view_manager.board_view.tile_image_pos(tile.id)
+        # アイソメトリック時はトップビューの座標を使う（描画もトップビュー）
+        if self.view_manager.view_type == "isometric":
+            tx, ty = self.view_manager._board_views["topview"].tile_image_pos(tile.id)
+        else:
+            tx, ty = self.view_manager.board_view.tile_image_pos(tile.id)
         self.sub_phase = SubPhase.TILE_ZOOM_IN
         self.tile_zoom.start_zoom_in(
             tx, ty,
@@ -688,7 +692,12 @@ class MainBoardScene(Scene):
 
         # オフスクリーン描画 → blt3d でスクリーンに転送
         img = pyxel.images[self.zoom_image_idx]
-        self.view_manager.board_view.draw_board_to_image(
+        is_iso = self.view_manager.view_type == "isometric"
+        # アイソメトリック: フラットカメラ（パース最小、ズームのみ）
+        # トップビュー: パース付きカメラ
+        self.tile_zoom.flat_mode = is_iso
+        draw_view = self.view_manager.board_view
+        draw_view.draw_board_to_image(
             img, gs.active_players, move_info
         )
         pos = self.tile_zoom.camera_pos

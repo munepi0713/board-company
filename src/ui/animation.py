@@ -90,23 +90,37 @@ class TileZoomAnimation(Animation):
 
     常にカメラパラメータを提供する。
     非ズーム時はデフォルトの俯瞰位置、ズーム時はマスに接近する。
+    flat_mode=Trueの場合、パースをつけずに真上からのカメラで
+    ズームのみ行う（アイソメトリック描画との二重パース防止）。
     """
 
     ZOOM_IN_DURATION = 20
     ZOOM_OUT_DURATION = 15
-    FOV = 90
     IMG_CENTER = 128  # イメージバンク中心
 
-    # 通常時カメラ（俯瞰）
+    # 通常時カメラ（俯瞰・パースあり）
     NORMAL_X = 128
     NORMAL_Y = 220
     NORMAL_Z = 120
     NORMAL_RX = 65
+    NORMAL_FOV = 90
 
-    # ズーム時カメラ（接近）
+    # ズーム時カメラ（接近・パースあり）
     ZOOM_Z = 25
     ZOOM_Y_OFFSET = 20  # マス位置からのYオフセット
     ZOOM_RX = 55
+
+    # フラットモード: ほぼ真上からのカメラ（パース最小）
+    # 公式サンプル参照: rot_x最大100=真下、Z小さめ、FOV狭め
+    FLAT_NORMAL_X = 128
+    FLAT_NORMAL_Y = 220
+    FLAT_NORMAL_Z = 120
+    FLAT_NORMAL_RX = 75
+    FLAT_FOV = 90
+
+    FLAT_ZOOM_Z = 20
+    FLAT_ZOOM_Y_OFFSET = 10
+    FLAT_ZOOM_RX = 70
 
     def __init__(self):
         super().__init__(duration=20)
@@ -115,6 +129,7 @@ class TileZoomAnimation(Animation):
         self.zooming_out = False
         self.target_x = self.IMG_CENTER
         self.target_y = self.IMG_CENTER
+        self.flat_mode = False
 
     def start_zoom_in(self, target_x, target_y, on_complete=None):
         self.target_x = target_x
@@ -152,9 +167,14 @@ class TileZoomAnimation(Animation):
     @property
     def camera_pos(self):
         """常にカメラ位置を返す（非ズーム時はデフォルト俯瞰）"""
+        if self.flat_mode:
+            return self._camera_pos_flat
+        return self._camera_pos_perspective
+
+    @property
+    def _camera_pos_perspective(self):
         if not self.active:
             return (self.NORMAL_X, self.NORMAL_Y, self.NORMAL_Z)
-
         t = self._eased_progress
         zoom_y = self.target_y + self.ZOOM_Y_OFFSET
         cx = self._lerp(self.NORMAL_X, self.target_x, t)
@@ -163,7 +183,20 @@ class TileZoomAnimation(Animation):
         return (cx, cy, cz)
 
     @property
+    def _camera_pos_flat(self):
+        if not self.active:
+            return (self.FLAT_NORMAL_X, self.FLAT_NORMAL_Y, self.FLAT_NORMAL_Z)
+        t = self._eased_progress
+        zoom_y = self.target_y + self.FLAT_ZOOM_Y_OFFSET
+        cx = self._lerp(self.FLAT_NORMAL_X, self.target_x, t)
+        cy = self._lerp(self.FLAT_NORMAL_Y, zoom_y, t)
+        cz = self._lerp(self.FLAT_NORMAL_Z, self.FLAT_ZOOM_Z, t)
+        return (cx, cy, cz)
+
+    @property
     def camera_rot(self):
+        if self.flat_mode:
+            return (self.FLAT_NORMAL_RX, 0, 0)
         if not self.active:
             return (self.NORMAL_RX, 0, 0)
         t = self._eased_progress
@@ -172,4 +205,4 @@ class TileZoomAnimation(Animation):
 
     @property
     def fov(self):
-        return self.FOV
+        return self.FLAT_FOV if self.flat_mode else self.NORMAL_FOV
