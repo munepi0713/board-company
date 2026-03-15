@@ -706,9 +706,8 @@ class MainBoardScene(Scene):
         pyxel.blt3d(0, vp_y, SCREEN_WIDTH, vp_h,
                     self.zoom_image_idx, pos, rot, fov=fov)
 
-        # スクリーン上にビルボード描画（ズーム中は非表示）
-        if not self.tile_zoom.active:
-            self._draw_billboards(gs, is_iso, move_info)
+        # スクリーン上にビルボード描画
+        self._draw_billboards(gs, is_iso, move_info)
 
         # プレイヤー所持金
         self.hud.draw_player_money(gs.players, gs, y=440)
@@ -732,6 +731,49 @@ class MainBoardScene(Scene):
             pyxel.rectb(160, 240, 200, 24, 7)
             draw_text(176, 248, f"{player.name} 思考中...", 7)
 
+    def _project_billboard(self, img_x, img_y, is_iso):
+        """イメージ座標からビルボードのスクリーン座標を計算する（ズーム対応）"""
+        result = project_to_screen(img_x, img_y, is_iso)
+        if result is None:
+            return None
+
+        if not self.tile_zoom.active:
+            return result
+
+        sx, sy, scale = result
+        # ズーム中: ターゲットタイルの通常位置を基準に拡大・移動
+        t_result = project_to_screen(self.tile_zoom.target_x, self.tile_zoom.target_y, is_iso)
+        if t_result is None:
+            return result
+
+        t_sx, t_sy, t_scale = t_result
+        prog = self.tile_zoom._eased_progress
+
+        # ズーム倍率（カメラZ比から）
+        if is_iso:
+            zoom_factor = self.tile_zoom.NORMAL_Z / max(self.tile_zoom.ZOOM_Z, 1)
+        else:
+            zoom_factor = self.tile_zoom.FLAT_NORMAL_Z / max(self.tile_zoom.FLAT_ZOOM_Z, 1)
+
+        # ビューポート中心（ズーム先の画面中心）
+        vp_cx = SCREEN_WIDTH / 2
+        vp_cy = 300 if not is_iso else 260
+
+        # 通常位置からの相対オフセットをズーム倍率で拡大
+        cur_zoom = 1.0 + (zoom_factor - 1.0) * prog
+        dx = (sx - t_sx) * cur_zoom
+        dy = (sy - t_sy) * cur_zoom
+
+        # ターゲットを画面中心に向かって移動
+        center_x = t_sx + (vp_cx - t_sx) * prog
+        center_y = t_sy + (vp_cy - t_sy) * prog
+
+        out_sx = center_x + dx
+        out_sy = center_y + dy
+        out_scale = scale * cur_zoom
+
+        return (out_sx, out_sy, out_scale)
+
     def _draw_billboards(self, gs, is_iso, move_info):
         """blt3d描画後にスクリーン上にビルボードを描画する"""
         board = gs.board
@@ -742,11 +784,11 @@ class MainBoardScene(Scene):
 
         for tile in board.tiles:
             ix, iy = bv.tile_image_pos(tile.id)
-            result = project_to_screen(ix, iy, is_iso)
+            result = self._project_billboard(ix, iy, is_iso)
             if result is None:
                 continue
             sx, sy, scale = result
-            if sx < -50 or sx > SCREEN_WIDTH + 50 or sy < -50 or sy > SCREEN_HEIGHT + 50:
+            if sx < -100 or sx > SCREEN_WIDTH + 100 or sy < -100 or sy > SCREEN_HEIGHT + 100:
                 continue
             draw_list.append((sy, tile.id, ix, iy, sx, sy, scale))
 
@@ -777,7 +819,7 @@ class MainBoardScene(Scene):
                 prog = move_info["progress"]
                 mix = fix + (tix - fix) * prog
                 miy = fiy + (tiy - fiy) * prog
-                result = project_to_screen(mix, miy, is_iso)
+                result = self._project_billboard(mix, miy, is_iso)
                 if result:
                     player_draws.append((result[1], p, result[0], result[1], result[2]))
                 continue
@@ -787,7 +829,7 @@ class MainBoardScene(Scene):
             idx = tile_counts[tid]
             tile_counts[tid] += 1
             ix, iy = bv.tile_image_pos(tid)
-            result = project_to_screen(ix, iy, is_iso)
+            result = self._project_billboard(ix, iy, is_iso)
             if result is None:
                 continue
             sx, sy, scale = result
@@ -797,7 +839,7 @@ class MainBoardScene(Scene):
 
         player_draws.sort(key=lambda e: e[0])
         for _, p, sx, sy, scale in player_draws:
-            if -50 < sx < SCREEN_WIDTH + 50 and -50 < sy < SCREEN_HEIGHT + 50:
+            if -100 < sx < SCREEN_WIDTH + 100 and -100 < sy < SCREEN_HEIGHT + 100:
                 draw_player_on_screen(sx, sy, scale, p.color, p.id)
 
     def _draw_dice(self):
