@@ -19,9 +19,9 @@
 |:---:|:---:|:---:|
 | ![タイトル](screenshots/01_title.png) | ![セットアップ](screenshots/02_setup.png) | ![メインボード](screenshots/03_main_board.png) |
 
-| サイコロ演出 | ゲームプレイ |
-|:---:|:---:|
-| ![サイコロ](screenshots/04_dice.png) | ![ゲームプレイ](screenshots/05_gameplay.png) |
+| サイコロ演出 | ゲームプレイ | アイソメトリック |
+|:---:|:---:|:---:|
+| ![サイコロ](screenshots/04_dice.png) | ![ゲームプレイ](screenshots/05_gameplay.png) | ![アイソメトリック](screenshots/06_isometric.png) |
 
 ## ゲーム概要
 
