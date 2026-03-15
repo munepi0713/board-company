@@ -51,7 +51,7 @@ class ViewManager:
         from src.views.isometric.player_view import IsometricPlayerView
 
         self.board_model = board_model
-        self.view_type = "topview"
+        self.view_type = "isometric"
         self._board_views = {
             "topview": TopViewBoardView(board_model),
             "isometric": IsometricBoardView(board_model),
