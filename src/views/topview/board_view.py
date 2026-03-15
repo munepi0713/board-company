@@ -27,7 +27,7 @@ TILE_OWNED_BORDER = 8  # 赤
 ROAD_COLOR = 13        # 灰色
 
 # 同一マス上のプレイヤー表示オフセット（イメージバンク用）
-_PLAYER_IMG_OFFSETS = [(-4, -4), (4, -4), (-4, 4), (4, 4)]
+_PLAYER_IMG_OFFSETS = [(-6, -2), (6, -2), (-6, 6), (6, 6)]
 
 
 class TopViewBoardView(BoardViewBase):
@@ -133,11 +133,9 @@ class TopViewBoardView(BoardViewBase):
             border = TILE_OWNED_BORDER if tile.is_owned else TILE_BORDER_COLOR
             img.rectb(sx, sy, OFF_TILE, OFF_TILE, border)
 
+            # 建物マーカー（小さいドットのみ、ビルボードはスクリーン上に描画）
             if tile.has_company:
-                bx = sx + 2
-                by = sy + 2
-                img.rect(bx, by, 6, 8, 7)
-                img.rect(bx + 1, by + 4, 4, 4, 0)
+                img.pset(sx + OFF_TILE // 2, sy + OFF_TILE // 2, 7)
 
             tcx = sx + OFF_TILE // 2 - 2
             tcy = sy + OFF_TILE // 2 - 2
@@ -150,22 +148,20 @@ class TopViewBoardView(BoardViewBase):
             elif tile.tile_type == "card":
                 img.text(tcx, tcy, "C", 7)
 
-        # プレイヤー
+        # プレイヤーマーカー（小さいドットのみ、ビルボードはスクリーン上に描画）
         if players:
             tile_counts = {}
             for p in players:
                 if p.is_bankrupt:
                     continue
-                # 移動アニメーション中のプレイヤーは補間位置に描画
                 if move_info and p.id == move_info["player_id"]:
                     fx, fy = self.tile_image_pos(move_info["from_tile"])
                     tx, ty = self.tile_image_pos(move_info["to_tile"])
                     prog = move_info["progress"]
                     px = int(fx + (tx - fx) * prog)
                     py = int(fy + (ty - fy) * prog)
-                    img.circ(px, py, 2, p.color)
+                    img.pset(px, py, p.color)
                     continue
-                # 通常: タイル位置に描画
                 tid = p.position
                 if tid not in tile_counts:
                     tile_counts[tid] = 0
@@ -173,7 +169,7 @@ class TopViewBoardView(BoardViewBase):
                 tile_counts[tid] += 1
                 tx, ty = self.tile_image_pos(tid)
                 dx, dy = _PLAYER_IMG_OFFSETS[idx % len(_PLAYER_IMG_OFFSETS)]
-                img.circ(tx + dx, ty + dy, 2, p.color)
+                img.pset(tx + dx, ty + dy, p.color)
 
     def draw_tile_info(self, tile, x, y):
         """マス情報のツールチップ描画"""
