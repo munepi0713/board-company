@@ -143,6 +143,12 @@ pyxel.blt3d(x, y, w, h, img, pos, rot, fov=None, colkey=None)
 
 SubPhase: `TILE_ZOOM_IN`, `TILE_ZOOM_OUT` が追加されている。
 
+## 入力操作ルール
+
+- **キーボード入力は必ず `src/ui/input_helper.py` の `btnp()` / `btn()` を使う。** `pyxel.btnp()` や `pyxel.btn()` を直接呼ばないこと。
+- `input_helper` はキーボードとゲームパッド（GAMEPAD1）の入力を統合している。スマホブラウザでは Pyxel の仮想ゲームパッドが表示されるため、この統合レイヤーを使うことでタッチ操作にも対応できる。
+- 新しいキー → ゲームパッドのマッピングが必要な場合は `_KEY_TO_GAMEPAD` に追加する。
+
 ## コード変更時の注意
 
 - ソースを変更したら `pyxel package . main.py` で `.pyxapp` を再ビルドする

@@ -8,7 +8,7 @@ from src.core.rules import SCREEN_WIDTH, SCREEN_HEIGHT, LAND_FEE_RATE, COMPANY_F
 from src.core.game_state import GameState, GamePhase
 from src.core.company_model import Company
 from src.core.card_logic import get_random_card, get_shop_cards, get_normal_cards
-from src.core.event_logic import check_events, apply_event, get_news_content, get_sponsors
+from src.core.event_logic import check_events, apply_event
 from src.core.ai import AIPlayer
 from src.views.view_base import ViewManager
 from src.ui.dialog import Dialog, ConfirmDialog
@@ -69,6 +69,10 @@ class MainBoardScene(Scene):
 
         self.view_manager = ViewManager(self.game_state.board)
 
+        # 初回スナップショット（ニュース比較用）
+        if not self.game_state.news_snapshot:
+            self.game_state.take_news_snapshot()
+
         # AI初期化
         self.ai_players = {}
         for p in self.game_state.players:
@@ -102,8 +106,9 @@ class MainBoardScene(Scene):
                 messages.append(msg)
             gs.event_results = messages
 
-        # ニュース判定
-        if gs.is_news_turn():
+        # ニュース判定（同一ターンで二度表示しない）
+        if gs.is_news_turn() and not gs.news_done:
+            gs.news_done = True
             self.change_scene("news", game_state=gs,
                               company_types=self.company_types,
                               characters=self.characters)
