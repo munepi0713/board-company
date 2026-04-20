@@ -63,48 +63,39 @@ python tests/test_zoom.py
 ```
 
 - `test_screens.py` — pyxel-mcp を使った7つの画面遷移・描画テスト
-- `test_zoom.py` — TileZoomAnimation の15項目のユニットテスト（カメラ補間、イージング、状態遷移、tile_image_pos 座標境界）
+- `test_zoom.py` — TileZoomAnimation の15項目のユニットテスト（scale/offset 補間、イージング、状態遷移、tile_image_pos 座標境界）
 
-## blt3d 描画パイプライン
+## 描画パイプライン（オフスクリーン → scale 付き blt）
 
-メインボードの描画は **オフスクリーン → blt3d 転送** の統一パイプラインで行われる。ズーム有無を問わず同一コードパスで描画する。
+メインボードの描画は **オフスクリーン描画 → `pyxel.blt` scale 拡大転送** の統一パイプライン。ビュー種別（isometric / topview）とズーム有無を問わず同一コードパスで描画する。
 
 ### パイプライン概要
 
 ```
-BoardView.draw_board_to_image(img)   ← 256x256 イメージバンクに縮小描画
+BoardView.draw_board_to_image(img)   ← 256x208 領域に描画（img bank 2）
          ↓
-TileZoomAnimation.camera_pos/rot/fov ← カメラパラメータ（常時提供）
+TileZoomAnimation.scale / offset     ← 常時提供（通常時=BASE_SCALE, ズーム時=ZOOM_SCALE へ補間）
          ↓
-pyxel.blt3d(viewport, img, pos, rot, fov) ← 3D射影でスクリーンに転送
+pyxel.blt(offset_x, offset_y, 2, 0, 0, IMG_W, IMG_H, scale=scale)
 ```
 
-### blt3d API（Pyxel 2.x、公式READMEに未記載）
+### TileZoomAnimation の定数
 
-```python
-pyxel.blt3d(x, y, w, h, img, pos, rot, fov=None, colkey=None)
-```
-
-| パラメータ | 型 | 説明 |
+| パラメータ | 値 | 説明 |
 |---|---|---|
-| `x, y, w, h` | int | スクリーン上のビューポート矩形 |
-| `img` | int | イメージバンク番号（0, 1, 2） |
-| `pos` | (x, y, z) | カメラ位置。x,y=イメージ平面上、z=高さ |
-| `rot` | (rx, ry, rz) | カメラ回転。rx=傾き角度 |
-| `fov` | int | 視野角（度） |
-| `colkey` | int | 透過色 |
+| `BASE_SCALE` | 2.0 | 通常時のピクセル等倍拡大（256→512） |
+| `ZOOM_SCALE` | 4.0 | ズーム時の拡大倍率 |
+| `BASE_OFFSET_X, BASE_OFFSET_Y` | 0, 16 | 通常時の描画左上（HUD の下） |
+| `FOCUS_X, FOCUS_Y` | 256, 240 | ズーム時のターゲット画像座標をここへ寄せる |
+| `ZOOM_IN_DURATION / ZOOM_OUT_DURATION` | 20 / 15 | フレーム数 |
+| `FOLLOW_FACTOR` | 0.25 | 視線追従による平行移動係数 |
 
-### カメラパラメータ（経験的に決定）
+### ビュー別のタイルサイズ
 
-| 状態 | pos | rot | 備考 |
-|---|---|---|---|
-| 通常俯瞰 | (128, 220, 120) | (65, 0, 0) | ボード全体が見える |
-| ズーム時 | (tile_x, tile_y+20, 25) | (55, 0, 0) | マスに接近 |
-
-**注意点:**
-- `rot_x=90`（真下）はほぼ何も映らない。55〜65度が実用的な範囲
-- `cam_y` をボードの後方（大きい値）にすると中心に寄る
-- イージング: ズームイン `1-(1-p)²`、ズームアウト `1-p²`
+| ビュー | タイル | 備考 |
+|---|---|---|
+| Isometric | `TILE_W=32, TILE_H=16, TILE_DEPTH=3` | ダイヤモンド 2:1、上面 + 南/東側面で立体感 |
+| TopView | `CELL_W=22, CELL_H=22, GAP=2` | デバッグ用のフラット表示 |
 
 ### イメージバンク使用状況
 
@@ -112,28 +103,27 @@ pyxel.blt3d(x, y, w, h, img, pos, rot, fov=None, colkey=None)
 |---|---|
 | 0 | フォント（BDFフォント描画用） |
 | 1 | （予備） |
-| 2 | **ボードオフスクリーン描画** ← blt3d 転送元 |
-
-### オフスクリーン描画の縮小率
-
-ボード（グリッド 0〜7、40タイル）を 256x256 に収めるため縮小して描画する。
-
-| ビュー | タイルサイズ | ステップ |
-|---|---|---|
-| TopView | OFF_TILE=20, OFF_GAP=2 | OFF_STEP=22 px/マス |
-| Isometric | OFF_ISO_W=30, OFF_ISO_H=15, OFF_ISO_DEPTH=8 | — |
-
-各ビューの `__init__` で `_img_ox`, `_img_oy` を計算してボードを 256x256 の中央に配置する。
+| 2 | **ボードオフスクリーン描画** ← `pyxel.blt` 転送元（使用領域 256x208） |
 
 ### 関連ファイル
 
 | ファイル | 役割 |
 |---|---|
-| `src/ui/animation.py` → `TileZoomAnimation` | カメラパラメータ管理、イージング補間 |
-| `src/views/view_base.py` → `BoardViewBase` | `draw_board_to_image()`, `tile_image_pos()` 基底メソッド |
-| `src/views/topview/board_view.py` | TopView のオフスクリーン描画実装 |
-| `src/views/isometric/board_view.py` | Isometric のオフスクリーン描画実装 |
+| `src/ui/animation.py` → `TileZoomAnimation` | scale/offset の補間、視線追従 |
+| `src/views/view_base.py` → `ViewManager` | Isometric / TopView の切り替え |
+| `src/views/isometric/board_view.py` | ダイヤモンド投影でのオフスクリーン描画 |
+| `src/views/isometric/sprites.py` | 建物・プレイヤーの 2D スプライト関数 |
+| `src/views/topview/board_view.py` | フラット俯瞰（デバッグ用） |
 | `src/scenes/main_board.py` | 統一描画パイプライン、ズーム状態遷移 |
+
+### ダイヤモンド投影（Isometric）
+
+```
+grid (gx, gy) → image (BOARD_CX + (gx - gy) * TILE_W/2,
+                        BOARD_CY + (gx + gy) * TILE_H/2)
+```
+
+描画は奥（`gx+gy` 小）→手前（大）の順。同一タイル内は タイル→建物→プレイヤー の順。
 
 ### main_board.py のズーム状態遷移
 

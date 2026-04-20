@@ -86,72 +86,72 @@ class MoveAnimation(Animation):
 
 
 class TileZoomAnimation(Animation):
-    """マスズームアニメーション（blt3d使用）
+    """マスズームアニメーション（pyxel.blt の scale 方式）
 
-    常にカメラパラメータを提供する。
-    非ズーム時はデフォルトの俯瞰位置、ズーム時はマスに接近する。
-    flat_mode=Trueの場合、パースをつけずに真上からのカメラで
-    ズームのみ行う（アイソメトリック描画との二重パース防止）。
+    オフスクリーン画像（IMG_W x IMG_H）を scale 倍してスクリーンに転送する。
+    常時 scale, offset_x, offset_y を提供する。
+
+    通常時:
+      scale = BASE_SCALE, 画像(0,0)が画面(BASE_OFFSET_X, BASE_OFFSET_Y)に来る
+
+    ズーム時:
+      scale = ZOOM_SCALE, ターゲットイメージ座標が画面中心(FOCUS_X, FOCUS_Y)に来る
     """
+
+    # 画像バンクサイズとスクリーン上の描画領域
+    IMG_W = 256
+    IMG_H = 208              # 画像バンク上で実際に使う領域の高さ
+    SCREEN_W = 512
+    SCREEN_H = 512
+
+    # 通常時（ピクセル等倍 2x）
+    BASE_SCALE = 2.0
+    BASE_OFFSET_X = 0        # 画像左端→画面左端
+    BASE_OFFSET_Y = 16       # HUD の下
+
+    # ズーム時
+    ZOOM_SCALE = 4.0
+    FOCUS_X = SCREEN_W // 2  # ターゲットを中心に寄せる
+    FOCUS_Y = 240            # 画面のボード領域中心に近い位置
 
     ZOOM_IN_DURATION = 20
     ZOOM_OUT_DURATION = 15
-    IMG_CENTER = 128  # イメージバンク中心
+    IMG_CENTER = IMG_W // 2
 
-    # 通常時カメラ（俯瞰・パースあり、rot_y=45でダイヤモンド表示）
-    NORMAL_X = 57
-    NORMAL_Y = 199
-    NORMAL_Z = 150
-    NORMAL_RX = 62
-    NORMAL_RY = 45
-    NORMAL_FOV = 40
-
-    # ズーム時カメラ（接近・パースあり）
-    ZOOM_Z = 25
-    ZOOM_Y_OFFSET = 20  # マス位置からのYオフセット
-    ZOOM_RX = 55
-
-    # フラットモード: ほぼ真上からのカメラ（パース最小）
-    # 公式サンプル参照: rot_x最大100=真下、Z小さめ、FOV狭め
-    FLAT_NORMAL_X = 128
-    FLAT_NORMAL_Y = 220
-    FLAT_NORMAL_Z = 120
-    FLAT_NORMAL_RX = 75
-    FLAT_FOV = 90
-
-    FLAT_ZOOM_Z = 20
-    FLAT_ZOOM_Y_OFFSET = 10
-    FLAT_ZOOM_RX = 70
-
-    # 視線追従パラメータ
-    FOLLOW_SPEED = 0.08  # 追従の補間速度（0〜1、大きいほど速い）
-    FOLLOW_FACTOR_PERSPECTIVE = 0.3  # パースモードでの追従係数
-    FOLLOW_FACTOR_FLAT = 0.5  # フラットモードでの追従係数
+    # 視線追従（通常時にボードを微妙に平行移動して現プレイヤーを寄せる）
+    FOLLOW_SPEED = 0.08
+    FOLLOW_FACTOR = 0.25     # 画像座標の中心からのズレに対する移動係数
 
     def __init__(self):
-        super().__init__(duration=20)
+        super().__init__(duration=self.ZOOM_IN_DURATION)
         self.active = False
         self.zooming_in = False
         self.zooming_out = False
         self.target_x = self.IMG_CENTER
-        self.target_y = self.IMG_CENTER
-        self.flat_mode = False
-        # 視線追従用
+        self.target_y = self.IMG_H // 2
+        # 視線追従
         self._follow_x = self.IMG_CENTER
-        self._follow_y = self.IMG_CENTER
+        self._follow_y = self.IMG_H // 2
         self._current_follow_x = float(self.IMG_CENTER)
-        self._current_follow_y = float(self.IMG_CENTER)
+        self._current_follow_y = float(self.IMG_H // 2)
 
+    # ---- 視線追従 ----------------------------------------------------
     def set_follow_target(self, target_x, target_y):
-        """視線追従のターゲット位置を設定する（イメージ座標）"""
         self._follow_x = target_x
         self._follow_y = target_y
 
     def update_follow(self):
-        """視線追従の補間を更新する（毎フレーム呼ぶ）"""
         self._current_follow_x += (self._follow_x - self._current_follow_x) * self.FOLLOW_SPEED
         self._current_follow_y += (self._follow_y - self._current_follow_y) * self.FOLLOW_SPEED
 
+    @property
+    def _follow_offset(self):
+        """通常時にオフスクリーンを平行移動させる画像座標オフセット"""
+        dx = (self._current_follow_x - self.IMG_CENTER) * self.FOLLOW_FACTOR
+        dy = (self._current_follow_y - self.IMG_H // 2) * self.FOLLOW_FACTOR
+        return (dx, dy)
+
+    # ---- ズーム開始/終了 --------------------------------------------
     def start_zoom_in(self, target_x, target_y, on_complete=None):
         self.target_x = target_x
         self.target_y = target_y
@@ -182,63 +182,46 @@ class TileZoomAnimation(Animation):
         if self.zooming_in:
             return 1 - (1 - p) ** 2  # イーズアウト
         elif self.zooming_out:
-            return 1 - p ** 2  # イーズアウト（逆方向）
+            return 1 - p ** 2        # 逆イーズアウト
         return 1.0
 
+    # ---- blt パラメータ ---------------------------------------------
     @property
-    def camera_pos(self):
-        """常にカメラ位置を返す（非ズーム時はデフォルト俯瞰）"""
-        if self.flat_mode:
-            return self._camera_pos_flat
-        return self._camera_pos_perspective
-
-    @property
-    def _follow_offset(self):
-        """マップ平面上での追従オフセット (dx, dy)。Zは不変。"""
-        f = self.FOLLOW_FACTOR_FLAT if self.flat_mode else self.FOLLOW_FACTOR_PERSPECTIVE
-        dx = (self._current_follow_x - self.IMG_CENTER) * f
-        dy = (self._current_follow_y - self.IMG_CENTER) * f
-        return (dx, dy)
-
-    @property
-    def _camera_pos_perspective(self):
-        dx, dy = self._follow_offset
-        base_x = self.NORMAL_X + dx
-        base_y = self.NORMAL_Y + dy
+    def scale(self):
+        """現在の blt スケール"""
         if not self.active:
-            return (base_x, base_y, self.NORMAL_Z)
-        t = self._eased_progress
-        zoom_y = self.target_y + self.ZOOM_Y_OFFSET
-        cx = self._lerp(base_x, self.target_x, t)
-        cy = self._lerp(base_y, zoom_y, t)
-        cz = self._lerp(self.NORMAL_Z, self.ZOOM_Z, t)
-        return (cx, cy, cz)
+            return self.BASE_SCALE
+        return self._lerp(self.BASE_SCALE, self.ZOOM_SCALE, self._eased_progress)
 
     @property
-    def _camera_pos_flat(self):
-        dx, dy = self._follow_offset
-        base_x = self.FLAT_NORMAL_X + dx
-        base_y = self.FLAT_NORMAL_Y + dy
+    def offset(self):
+        """pyxel.blt の転送先左上座標 (screen_x, screen_y)
+
+        return 値で pyxel.blt(offset_x, offset_y, img, 0, 0, IMG_W, IMG_H, scale=scale)
+        を呼べば OK。
+        """
+        s = self.scale
+        fx, fy = self._follow_offset
+
+        # 通常時の基準位置（視線追従で微平行移動）
+        base_x = self.BASE_OFFSET_X - fx * self.BASE_SCALE
+        base_y = self.BASE_OFFSET_Y - fy * self.BASE_SCALE
+
         if not self.active:
-            return (base_x, base_y, self.FLAT_NORMAL_Z)
-        t = self._eased_progress
-        zoom_y = self.target_y + self.FLAT_ZOOM_Y_OFFSET
-        cx = self._lerp(base_x, self.target_x, t)
-        cy = self._lerp(base_y, zoom_y, t)
-        cz = self._lerp(self.FLAT_NORMAL_Z, self.FLAT_ZOOM_Z, t)
-        return (cx, cy, cz)
+            return (base_x, base_y)
 
-    @property
-    def camera_rot(self):
-        if self.flat_mode:
-            return (self.FLAT_NORMAL_RX, 0, 0)
-        if not self.active:
-            return (self.NORMAL_RX, self.NORMAL_RY, 0)
-        t = self._eased_progress
-        rx = self._lerp(self.NORMAL_RX, self.ZOOM_RX, t)
-        ry = self._lerp(self.NORMAL_RY, 0, t)  # ズーム時はrot_y=0に戻す
-        return (rx, ry, 0)
+        # ズーム時: ターゲット画像座標 (tx, ty) が画面 (FOCUS_X, FOCUS_Y) に来るよう offset を決定
+        #   screen = offset + img * s  →  offset = FOCUS - (tx, ty) * s
+        zoom_x = self.FOCUS_X - self.target_x * s
+        zoom_y = self.FOCUS_Y - self.target_y * s
 
-    @property
-    def fov(self):
-        return self.FLAT_FOV if self.flat_mode else self.NORMAL_FOV
+        t = self._eased_progress
+        ox = self._lerp(base_x, zoom_x, t)
+        oy = self._lerp(base_y, zoom_y, t)
+        return (ox, oy)
+
+    def project_image_to_screen(self, img_x, img_y):
+        """オフスクリーン画像座標 → 現在のスクリーン座標"""
+        ox, oy = self.offset
+        s = self.scale
+        return (ox + img_x * s, oy + img_y * s)

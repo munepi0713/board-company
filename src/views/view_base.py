@@ -25,7 +25,7 @@ class BoardViewBase(ABC):
         return (128, 128)
 
     def draw_board_to_image(self, img, players=None, move_info=None):
-        """ボード＋プレイヤーをイメージバンクに描画（blt3d用）"""
+        """ボード＋プレイヤーをイメージバンクに描画（blt 拡大転送用）"""
         pass
 
 
@@ -42,29 +42,38 @@ class PlayerViewBase(ABC):
 
 
 class ViewManager:
-    """ビューの切り替えを管理
+    """ボードビューの切り替えを管理する
 
-    描画は常にTopViewBoardViewを使用し、
-    カメラパラメータ（rot_y=45等）でアイソメトリック風に見せる。
+    view_type:
+      - "isometric": ダイヤモンド投影の擬似 3D 描画（本番用）
+      - "topview":   フラットな俯瞰（デバッグ用）
     """
 
     def __init__(self, board_model):
+        from src.views.isometric.board_view import IsometricBoardView
+        from src.views.isometric.player_view import IsometricPlayerView
         from src.views.topview.board_view import TopViewBoardView
         from src.views.topview.player_view import TopViewPlayerView
 
         self.board_model = board_model
         self.view_type = "isometric"
-        self._board_view = TopViewBoardView(board_model)
-        self._player_view = TopViewPlayerView()
+
+        self._iso_board = IsometricBoardView(board_model)
+        self._iso_player = IsometricPlayerView()
+        self._top_board = TopViewBoardView(board_model)
+        self._top_player = TopViewPlayerView()
 
     @property
     def board_view(self):
-        return self._board_view
+        if self.view_type == "topview":
+            return self._top_board
+        return self._iso_board
 
     @property
     def player_view(self):
-        return self._player_view
+        if self.view_type == "topview":
+            return self._top_player
+        return self._iso_player
 
     def toggle_view(self):
-        """トップビュー⇔アイソメトリックを切り替え"""
-        self.view_type = "isometric" if self.view_type == "topview" else "topview"
+        self.view_type = "topview" if self.view_type == "isometric" else "isometric"

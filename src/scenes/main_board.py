@@ -11,8 +11,6 @@ from src.core.card_logic import get_random_card, get_shop_cards, get_normal_card
 from src.core.event_logic import check_events, apply_event
 from src.core.ai import AIPlayer
 from src.views.view_base import ViewManager
-from src.views.projection import project_to_screen
-from src.views.billboard import draw_building_on_screen, draw_player_on_screen
 from src.ui.dialog import Dialog, ConfirmDialog
 from src.ui.menu import Menu
 from src.ui.hud import HUD
@@ -60,7 +58,7 @@ class MainBoardScene(Scene):
         self.moving_player_pos = None
         self.pending_action = None
         self.tile_zoom = TileZoomAnimation()
-        self.zoom_image_idx = 2  # blt3d用イメージバンク
+        self.zoom_image_idx = 2  # オフスクリーン描画用イメージバンク
         self.move_from_tile = None  # 移動アニメーション用: 元マスID
         self.move_to_tile = None    # 移動アニメーション用: 先マスID
 
@@ -715,26 +713,18 @@ class MainBoardScene(Scene):
                 "progress": self.move_anim.progress,
             }
 
-        # オフスクリーン描画 → blt3d でスクリーンに転送
+        # オフスクリーン描画 → scale 付き blt でスクリーンに転送（全ビュー共通パイプライン）
         img = pyxel.images[self.zoom_image_idx]
-        is_iso = self.view_manager.view_type == "isometric"
-        # 共通パイプライン: TopView描画 → カメラパラメータで見た目を切替
-        # アイソメトリック: rot_y=45 パース付き（Mode 7風ダイヤモンド）
-        # トップビュー: flat_mode（真上からのカメラ）
-        self.tile_zoom.flat_mode = not is_iso
         self.view_manager.board_view.draw_board_to_image(
             img, gs.active_players, move_info
         )
-        pos = self.tile_zoom.camera_pos
-        rot = self.tile_zoom.camera_rot
-        fov = self.tile_zoom.fov
-        vp_y = -160 if is_iso else 16
-        vp_h = 580 if is_iso else 420
-        pyxel.blt3d(0, vp_y, SCREEN_WIDTH, vp_h,
-                    self.zoom_image_idx, pos, rot, fov=fov)
-
-        # スクリーン上にビルボード描画
-        self._draw_billboards(gs, is_iso, move_info)
+        ox, oy = self.tile_zoom.offset
+        s = self.tile_zoom.scale
+        pyxel.blt(
+            int(ox), int(oy), self.zoom_image_idx,
+            0, 0, self.tile_zoom.IMG_W, self.tile_zoom.IMG_H,
+            colkey=None, scale=s,
+        )
 
         # プレイヤー所持金
         self.hud.draw_player_money(gs.players, gs, y=440)
@@ -757,117 +747,6 @@ class MainBoardScene(Scene):
             pyxel.rect(160, 240, 200, 24, 1)
             pyxel.rectb(160, 240, 200, 24, 7)
             draw_text(176, 248, f"{player.name} 思考中...", 7)
-
-    def _project_billboard(self, img_x, img_y, is_iso):
-        """イメージ座標からビルボードのスクリーン座標を計算する（ズーム対応）"""
-        result = project_to_screen(img_x, img_y, is_iso)
-        if result is None:
-            return None
-
-        if not self.tile_zoom.active:
-            return result
-
-        sx, sy, scale = result
-        # ズーム中: ターゲットタイルの通常位置を基準に拡大・移動
-        t_result = project_to_screen(self.tile_zoom.target_x, self.tile_zoom.target_y, is_iso)
-        if t_result is None:
-            return result
-
-        t_sx, t_sy, t_scale = t_result
-        prog = self.tile_zoom._eased_progress
-
-        # ズーム倍率（カメラZ比から）
-        if is_iso:
-            zoom_factor = self.tile_zoom.NORMAL_Z / max(self.tile_zoom.ZOOM_Z, 1)
-        else:
-            zoom_factor = self.tile_zoom.FLAT_NORMAL_Z / max(self.tile_zoom.FLAT_ZOOM_Z, 1)
-
-        # ビューポート中心（ズーム先の画面中心）
-        vp_cx = SCREEN_WIDTH / 2
-        vp_cy = 300 if not is_iso else 260
-
-        # 通常位置からの相対オフセットをズーム倍率で拡大
-        cur_zoom = 1.0 + (zoom_factor - 1.0) * prog
-        dx = (sx - t_sx) * cur_zoom
-        dy = (sy - t_sy) * cur_zoom
-
-        # ターゲットを画面中心に向かって移動
-        center_x = t_sx + (vp_cx - t_sx) * prog
-        center_y = t_sy + (vp_cy - t_sy) * prog
-
-        out_sx = center_x + dx
-        out_sy = center_y + dy
-        out_scale = scale * cur_zoom
-
-        return (out_sx, out_sy, out_scale)
-
-    def _draw_billboards(self, gs, is_iso, move_info):
-        """blt3d描画後にスクリーン上にビルボードを描画する"""
-        board = gs.board
-        bv = self.view_manager.board_view
-
-        # 全タイルの投影位置を計算し、奥から手前の順に描画（Zソート）
-        draw_list = []
-
-        for tile in board.tiles:
-            ix, iy = bv.tile_image_pos(tile.id)
-            result = self._project_billboard(ix, iy, is_iso)
-            if result is None:
-                continue
-            sx, sy, scale = result
-            if sx < -100 or sx > SCREEN_WIDTH + 100 or sy < -100 or sy > SCREEN_HEIGHT + 100:
-                continue
-            draw_list.append((sy, tile.id, ix, iy, sx, sy, scale))
-
-        # 奥（screen_y小）から手前（screen_y大）の順に描画
-        draw_list.sort(key=lambda e: e[0])
-
-        # 建物ビルボード
-        for _, tile_id, ix, iy, sx, sy, scale in draw_list:
-            tile = board.get_tile(tile_id)
-            if tile.has_company:
-                owner_color = 7
-                for p in gs.active_players:
-                    if p.id == tile.company.owner_id:
-                        owner_color = p.color
-                        break
-                draw_building_on_screen(sx, sy, scale, owner_color)
-
-        # プレイヤービルボード
-        player_draws = []
-        tile_counts = {}
-        offsets = [(-8, 0), (8, 0), (-8, 0), (8, 0)]
-        for p in gs.active_players:
-            if p.is_bankrupt:
-                continue
-            if move_info and p.id == move_info["player_id"]:
-                fix, fiy = bv.tile_image_pos(move_info["from_tile"])
-                tix, tiy = bv.tile_image_pos(move_info["to_tile"])
-                prog = move_info["progress"]
-                mix = fix + (tix - fix) * prog
-                miy = fiy + (tiy - fiy) * prog
-                result = self._project_billboard(mix, miy, is_iso)
-                if result:
-                    player_draws.append((result[1], p, result[0], result[1], result[2]))
-                continue
-            tid = p.position
-            if tid not in tile_counts:
-                tile_counts[tid] = 0
-            idx = tile_counts[tid]
-            tile_counts[tid] += 1
-            ix, iy = bv.tile_image_pos(tid)
-            result = self._project_billboard(ix, iy, is_iso)
-            if result is None:
-                continue
-            sx, sy, scale = result
-            # 同一マス上のプレイヤーを横にずらす
-            dx = offsets[idx % len(offsets)][0] * scale
-            player_draws.append((sy, p, sx + dx, sy, scale))
-
-        player_draws.sort(key=lambda e: e[0])
-        for _, p, sx, sy, scale in player_draws:
-            if -100 < sx < SCREEN_WIDTH + 100 and -100 < sy < SCREEN_HEIGHT + 100:
-                draw_player_on_screen(sx, sy, scale, p.color, p.id)
 
     def _draw_dice(self):
         # サイコロ表示
