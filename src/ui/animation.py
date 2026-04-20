@@ -99,20 +99,20 @@ class TileZoomAnimation(Animation):
     """
 
     # 画像バンクサイズとスクリーン上の描画領域
-    IMG_W = 256
-    IMG_H = 208              # 画像バンク上で実際に使う領域の高さ
+    IMG_W = 512
+    IMG_H = 416              # 画像バンク上で実際に使う領域の高さ
     SCREEN_W = 512
     SCREEN_H = 512
 
-    # 通常時（ピクセル等倍 2x）
-    BASE_SCALE = 2.0
+    # 通常時（ネイティブ解像度でそのまま転送）
+    BASE_SCALE = 1.0
     BASE_OFFSET_X = 0        # 画像左端→画面左端
     BASE_OFFSET_Y = 16       # HUD の下
 
-    # ズーム時
-    ZOOM_SCALE = 4.0
-    FOCUS_X = SCREEN_W // 2  # ターゲットを中心に寄せる
-    FOCUS_Y = 240            # 画面のボード領域中心に近い位置
+    # ズーム時（2x 拡大）
+    ZOOM_SCALE = 2.0
+    FOCUS_X = SCREEN_W // 2  # 画面中央 (256)
+    FOCUS_Y = 224            # ボード領域 y=16..432 の中心
 
     ZOOM_IN_DURATION = 20
     ZOOM_OUT_DURATION = 15
@@ -127,12 +127,12 @@ class TileZoomAnimation(Animation):
         self.active = False
         self.zooming_in = False
         self.zooming_out = False
-        self.target_x = self.IMG_CENTER
+        self.target_x = self.IMG_W // 2
         self.target_y = self.IMG_H // 2
         # 視線追従
-        self._follow_x = self.IMG_CENTER
+        self._follow_x = self.IMG_W // 2
         self._follow_y = self.IMG_H // 2
-        self._current_follow_x = float(self.IMG_CENTER)
+        self._current_follow_x = float(self.IMG_W // 2)
         self._current_follow_y = float(self.IMG_H // 2)
 
     # ---- 視線追従 ----------------------------------------------------
@@ -147,7 +147,7 @@ class TileZoomAnimation(Animation):
     @property
     def _follow_offset(self):
         """通常時にオフスクリーンを平行移動させる画像座標オフセット"""
-        dx = (self._current_follow_x - self.IMG_CENTER) * self.FOLLOW_FACTOR
+        dx = (self._current_follow_x - self.IMG_W // 2) * self.FOLLOW_FACTOR
         dy = (self._current_follow_y - self.IMG_H // 2) * self.FOLLOW_FACTOR
         return (dx, dy)
 
@@ -197,23 +197,34 @@ class TileZoomAnimation(Animation):
     def offset(self):
         """pyxel.blt の転送先左上座標 (screen_x, screen_y)
 
-        return 値で pyxel.blt(offset_x, offset_y, img, 0, 0, IMG_W, IMG_H, scale=scale)
-        を呼べば OK。
+        pyxel.blt は scale をコピー領域の中心を基準に適用する（中心ベース）。
+        画像サイズ IMG_W x IMG_H を u=v=0, w=IMG_W, h=IMG_H で blt する場合:
+
+            screen_pos = (offset + IMG_W/2) + (img_pos - IMG_W/2) * scale
+                       = offset + img_pos * scale + IMG_W/2 * (1 - scale)
+
+        よって画像座標 (tx, ty) を画面 (SX, SY) に置きたいとき:
+            offset = SX - tx * scale + IMG_W/2 * (scale - 1)
         """
         s = self.scale
+        cx = self.IMG_W * 0.5
+        cy = self.IMG_H * 0.5
+        # scale 由来のセンター補正（pyxel.blt 仕様）
+        center_adj_x = cx * (s - 1.0)
+        center_adj_y = cy * (s - 1.0)
+
         fx, fy = self._follow_offset
 
-        # 通常時の基準位置（視線追従で微平行移動）
-        base_x = self.BASE_OFFSET_X - fx * self.BASE_SCALE
-        base_y = self.BASE_OFFSET_Y - fy * self.BASE_SCALE
+        # 通常時: 画像中心を画面中心に合わせる基準位置（視線追従を加味）
+        base_x = self.BASE_OFFSET_X - fx * self.BASE_SCALE + cx * (self.BASE_SCALE - 1.0)
+        base_y = self.BASE_OFFSET_Y - fy * self.BASE_SCALE + cy * (self.BASE_SCALE - 1.0)
 
         if not self.active:
             return (base_x, base_y)
 
         # ズーム時: ターゲット画像座標 (tx, ty) が画面 (FOCUS_X, FOCUS_Y) に来るよう offset を決定
-        #   screen = offset + img * s  →  offset = FOCUS - (tx, ty) * s
-        zoom_x = self.FOCUS_X - self.target_x * s
-        zoom_y = self.FOCUS_Y - self.target_y * s
+        zoom_x = self.FOCUS_X - self.target_x * s + center_adj_x
+        zoom_y = self.FOCUS_Y - self.target_y * s + center_adj_y
 
         t = self._eased_progress
         ox = self._lerp(base_x, zoom_x, t)
@@ -221,7 +232,15 @@ class TileZoomAnimation(Animation):
         return (ox, oy)
 
     def project_image_to_screen(self, img_x, img_y):
-        """オフスクリーン画像座標 → 現在のスクリーン座標"""
+        """オフスクリーン画像座標 → 現在のスクリーン座標
+
+        pyxel.blt の中心ベーススケーリングに対応した逆変換。
+        """
         ox, oy = self.offset
         s = self.scale
-        return (ox + img_x * s, oy + img_y * s)
+        cx = self.IMG_W * 0.5
+        cy = self.IMG_H * 0.5
+        # screen = (offset + IMG_W/2) + (img - IMG_W/2) * scale
+        sx = (ox + cx) + (img_x - cx) * s
+        sy = (oy + cy) + (img_y - cy) * s
+        return (sx, sy)

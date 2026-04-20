@@ -58,7 +58,8 @@ class MainBoardScene(Scene):
         self.moving_player_pos = None
         self.pending_action = None
         self.tile_zoom = TileZoomAnimation()
-        self.zoom_image_idx = 2  # オフスクリーン描画用イメージバンク
+        # ボード描画用のオフスクリーン画像（ネイティブ解像度で拡大時も劣化させない）
+        self._offscreen = pyxel.Image(self.tile_zoom.IMG_W, self.tile_zoom.IMG_H)
         self.move_from_tile = None  # 移動アニメーション用: 元マスID
         self.move_to_tile = None    # 移動アニメーション用: 先マスID
 
@@ -714,17 +715,15 @@ class MainBoardScene(Scene):
             }
 
         # オフスクリーン描画 → scale 付き blt でスクリーンに転送（全ビュー共通パイプライン）
-        img = pyxel.images[self.zoom_image_idx]
+        img = self._offscreen
         self.view_manager.board_view.draw_board_to_image(
             img, gs.active_players, move_info
         )
         ox, oy = self.tile_zoom.offset
         s = self.tile_zoom.scale
-        pyxel.blt(
-            int(ox), int(oy), self.zoom_image_idx,
-            0, 0, self.tile_zoom.IMG_W, self.tile_zoom.IMG_H,
-            colkey=None, scale=s,
-        )
+        pyxel.blt(int(ox), int(oy), img,
+                  0, 0, self.tile_zoom.IMG_W, self.tile_zoom.IMG_H,
+                  colkey=None, scale=s)
 
         # プレイヤー所持金
         self.hud.draw_player_money(gs.players, gs, y=440)

@@ -8,13 +8,13 @@ from src.views.view_base import BoardViewBase
 from src.ui.font import draw_text
 
 # オフスクリーン画像サイズ（Isometric と揃える）
-IMG_W = 256
-IMG_H = 208
+IMG_W = 512
+IMG_H = 416
 
 # タイル1個あたりのサイズ
-CELL_W = 22
-CELL_H = 22
-GAP = 2
+CELL_W = 44
+CELL_H = 44
+GAP = 4
 
 # マスタイプごとの色
 TILE_COLORS = {
@@ -28,7 +28,7 @@ TILE_BORDER_COLOR = 1
 TILE_OWNED_BORDER = 8
 ROAD_COLOR = 13
 
-_PLAYER_OFFSETS = [(-5, -3), (5, -3), (-5, 5), (5, 5)]
+_PLAYER_OFFSETS = [(-10, -6), (10, -6), (-10, 10), (10, 10)]
 
 
 class TopViewBoardView(BoardViewBase):
@@ -96,7 +96,7 @@ class TopViewBoardView(BoardViewBase):
 
             # ラベル
             tcx = x + CELL_W // 2 - 2
-            tcy = y + CELL_H // 2 - 2
+            tcy = y + CELL_H // 2 - 3
             label = {
                 "plus": "+", "minus": "-",
                 "card_shop": "S", "card": "C",
@@ -106,7 +106,7 @@ class TopViewBoardView(BoardViewBase):
 
             # 建物マーカー
             if tile.has_company:
-                img.rect(x + 3, y + 3, 4, 6, 7)
+                img.rect(x + 6, y + 6, 8, 12, 7)
 
         # プレイヤー
         moving_player = move_info["player_id"] if move_info else None
@@ -124,8 +124,8 @@ class TopViewBoardView(BoardViewBase):
                 ox, oy = _PLAYER_OFFSETS[idx % len(_PLAYER_OFFSETS)]
                 px = tcx + ox
                 py = tcy + oy
-                img.rect(px - 1, py - 1, 3, 3, p.color)
-                img.pset(px, py - 2, 7)
+                img.rect(px - 2, py - 2, 5, 5, p.color)
+                img.pset(px, py - 3, 7)
 
         # 移動中プレイヤー
         if move_info and players:
@@ -136,8 +136,8 @@ class TopViewBoardView(BoardViewBase):
                 prog = move_info["progress"]
                 px = int(fx + (tx - fx) * prog)
                 py = int(fy + (ty - fy) * prog)
-                img.rect(px - 1, py - 1, 3, 3, mp.color)
-                img.pset(px, py - 2, 7)
+                img.rect(px - 2, py - 2, 5, 5, mp.color)
+                img.pset(px, py - 3, 7)
 
     def draw_tile_info(self, tile, x, y):
         pyxel.rect(x, y, 120, 40, 0)

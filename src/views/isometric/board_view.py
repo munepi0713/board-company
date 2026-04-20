@@ -12,16 +12,16 @@ from src.views.isometric.sprites import draw_building, draw_player
 from src.core.rules import TILE_SIZE
 
 # オフスクリーン画像サイズ（IMG_H は実コンテンツ領域）
-IMG_W = 256
-IMG_H = 208
+IMG_W = 512
+IMG_H = 416
 
 # ダイヤモンドタイルサイズ（2:1 比）
-TILE_W = 32
-TILE_H = 16
+TILE_W = 64
+TILE_H = 32
 
 # ボード中心（オフスクリーン上）— 8x8 グリッドが収まるよう調整
-BOARD_CX = IMG_W // 2        # 128
-BOARD_CY = 72                # 上部に建物の高さぶん余白を確保
+BOARD_CX = IMG_W // 2        # 256
+BOARD_CY = 96                # 上部に建物の高さぶん余白を確保
 
 # マスタイプごとの色（上面）
 TILE_COLORS = {
@@ -39,13 +39,13 @@ TILE_SIDE_COLOR_E = 5   # 暗めグレー
 TILE_BORDER_COLOR = 0
 TILE_OWNED_BORDER = 8   # 赤
 
-TILE_DEPTH = 3           # ダイヤモンドの「高さ」（厚み）px
+TILE_DEPTH = 6           # ダイヤモンドの「高さ」（厚み）px
 
 # 道（接続線）の色
 ROAD_COLOR = 13
 
 # 同一マス上の複数プレイヤーのオフセット（画像座標）
-_PLAYER_OFFSETS = [(-5, -2), (5, -2), (-5, 4), (5, 4)]
+_PLAYER_OFFSETS = [(-10, -4), (10, -4), (-10, 8), (10, 8)]
 
 
 def _draw_diamond_filled(img, cx, cy, w, h, color):
@@ -159,7 +159,7 @@ class IsometricBoardView(BoardViewBase):
             border = TILE_OWNED_BORDER if tile.is_owned else TILE_BORDER_COLOR
             _draw_tile_block(img, cx, cy, color, border)
 
-            # マスラベル
+            # マスラベル（大きめに）
             label = None
             if tile.tile_type == "plus":
                 label = "+"
@@ -170,7 +170,7 @@ class IsometricBoardView(BoardViewBase):
             elif tile.tile_type == "card":
                 label = "C"
             if label:
-                img.text(cx - 1, cy - 2, label, 7)
+                img.text(cx - 2, cy - 3, label, 7)
 
         # 建物とプレイヤーを奥→手前で描画（タイル順と同じ順）
         # 同一タイル内では: 建物 → プレイヤー（プレイヤーを手前に）
@@ -214,7 +214,7 @@ class IsometricBoardView(BoardViewBase):
                 tx, ty = tile_pos.get(move_info["to_tile"], (BOARD_CX, BOARD_CY))
                 prog = move_info["progress"]
                 # アーチ軌道（少しジャンプさせる）
-                bounce = -4 * prog * (1 - prog)  # 0→0 ピーク -1
+                bounce = -8 * prog * (1 - prog)
                 px = fx + (tx - fx) * prog
                 py = fy + (ty - fy) * prog + bounce
                 draw_player(img, int(px), int(py), mp.color, mp.id)
